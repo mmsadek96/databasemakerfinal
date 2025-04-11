@@ -1,0 +1,65 @@
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Correlation Analysis</h2>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Select Data Series</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Stocks</label>
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" id="correlation-stock-input" placeholder="Enter symbol">
+                        <button class="btn btn-outline-secondary" type="button" id="add-correlation-stock">Add</button>
+                    </div>
+                    <div id="correlation-stocks-list" class="list-group mb-3">
+                        <!-- Selected stocks will appear here -->
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Economic Indicators</label>
+                    <select class="form-select mb-2" id="correlation-indicator-select">
+                        <option value="" selected disabled>Choose an indicator</option>
+                        <option value="Inflation">Inflation</option>
+                        <option value="Unemployment">Unemployment</option>
+                        <option value="CPI">Consumer Price Index</option>
+                        <option value="Real GDP">Real GDP</option>
+                        <option value="Real GDP per Capita">Real GDP per Capita</option>
+                        <option value="Treasury Yield">10-Year Treasury Yield</option>
+                        <option value="Federal Funds Rate">Federal Funds Rate</option>
+                        <option value="Retail Sales">Retail Sales</option>
+                        <option value="Durables">Durable Goods Orders</option>
+                        <option value="Nonfarm Payroll">Nonfarm Payroll</option>
+                    </select>
+                    <button class="btn btn-outline-secondary" type="button" id="add-correlation-indicator">Add Indicator</button>
+                    <div id="correlation-indicators-list" class="list-group mt-2">
+                        <!-- Selected indicators will appear here -->
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="correlation-date-range" class="form-label">Date Range</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" id="correlation-start-date">
+                        <span class="input-group-text">to</span>
+                        <input type="date" class="form-control" id="correlation-end-date">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" id="calculate-correlation-button">Calculate Correlation</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Correlation Matrix</h5>
+            </div>
+            <div class="card-body">
+                <div id="correlation-matrix" class="correlation-heatmap">
+                    <p class="text-muted text-center">Add at least two data series to calculate correlation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

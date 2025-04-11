@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Intelligence Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/charts.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <!-- Include header component -->
+    {% include "components/header.html" %}
+
+    <!-- Main Content Area -->
+    <div class="container-fluid mt-4">
+        <!-- Include view partials -->
+        <div id="dashboard-view" class="view-section active">
+            {% include "partials/dashboard.html" %}
+        </div>
+
+        <div id="stocks-view" class="view-section">
+            {% include "partials/stocks.html" %}
+        </div>
+
+        <div id="indicators-view" class="view-section">
+            {% include "partials/indicators.html" %}
+        </div>
+
+        <div id="correlation-view" class="view-section">
+            {% include "partials/correlation.html" %}
+        </div>
+
+        <div id="options-view" class="view-section">
+            {% include "partials/options.html" %}
+        </div>
+
+        <div id="transcripts-view" class="view-section">
+            {% include "partials/transcripts.html" %}
+        </div>
+    </div>
+
+    <!-- Include modals -->
+    {% include "components/modals.html" %}
+
+    <!-- Footer -->
+    {% include "components/footer.html" %}
+
+    <!-- Load JavaScript modules -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

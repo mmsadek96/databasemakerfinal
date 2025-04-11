@@ -1,0 +1,57 @@
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Economic Indicators</h2>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Select Indicator</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="indicator-select" class="form-label">Indicator</label>
+                    <select class="form-select" id="indicator-select">
+                        <option value="" selected disabled>Choose an indicator</option>
+                        <option value="Inflation">Inflation</option>
+                        <option value="Unemployment">Unemployment</option>
+                        <option value="CPI">Consumer Price Index</option>
+                        <option value="Real GDP">Real GDP</option>
+                        <option value="Real GDP per Capita">Real GDP per Capita</option>
+                        <option value="Treasury Yield">10-Year Treasury Yield</option>
+                        <option value="Federal Funds Rate">Federal Funds Rate</option>
+                        <option value="Retail Sales">Retail Sales</option>
+                        <option value="Durables">Durable Goods Orders</option>
+                        <option value="Nonfarm Payroll">Nonfarm Payroll</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="indicator-date-range" class="form-label">Date Range</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" id="indicator-start-date">
+                        <span class="input-group-text">to</span>
+                        <input type="date" class="form-control" id="indicator-end-date">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" id="load-indicator-button">Load Data</button>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title">Indicator Details</h5>
+            </div>
+            <div class="card-body" id="indicator-details">
+                <p class="text-muted">Select an indicator to view details</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title" id="indicator-chart-title">Indicator Chart</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="indicator-chart" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
