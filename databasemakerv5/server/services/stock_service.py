@@ -1,3 +1,4 @@
+# Update in server/services/stock_service.py
 import pandas as pd
 from typing import List, Dict, Optional, Any
 from server.services.alpha_vantage import AlphaVantageClient
@@ -6,6 +7,7 @@ from server.config import get_logger
 import asyncio
 from cachetools import TTLCache
 from server.config import get_settings
+from datetime import datetime, timedelta
 
 logger = get_logger(__name__)
 
@@ -43,18 +45,40 @@ class StockService:
             return self.cache[cache_key]
 
         try:
+            # Set default date range if not provided or invalid
+            today = datetime.now()
+
+            # Default end_date to yesterday (to ensure all data exists)
+            default_end_date = (today - timedelta(days=1)).strftime('%Y-%m-%d')
+
+            # Default start_date to 1 year ago from end_date
+            default_start_date = (today - timedelta(days=366)).strftime('%Y-%m-%d')
+
+            # Validate and set dates
+            if not end_date or end_date > today.strftime('%Y-%m-%d'):
+                end_date = default_end_date
+
+            if not start_date or start_date > end_date:
+                start_date = default_start_date
+
+            logger.info(f"Getting stock data for {symbol} from {start_date} to {end_date}")
+
             df = await self.client.get_time_series_daily(symbol)
 
             if df.empty:
                 raise ValueError(f"No data found for symbol: {symbol}")
 
             # Apply date filtering
-            if start_date or end_date:
-                df = apply_date_filter(df, start_date, end_date)
+            df = apply_date_filter(df, start_date, end_date)
+
+            if df.empty:
+                raise ValueError(f"No data available for the selected date range")
 
             # Convert to dictionary for JSON response
-            df.index = df.index.strftime('%Y-%m-%d')  # Convert dates to strings
-            result = df.reset_index().to_dict(orient='records')
+            df.reset_index(inplace=True)
+            df.rename(columns={'index': 'date'}, inplace=True)
+            df['date'] = df['date'].dt.strftime('%Y-%m-%d')  # Format dates as strings
+            result = df.to_dict(orient='records')
 
             self.cache[cache_key] = result
             return result

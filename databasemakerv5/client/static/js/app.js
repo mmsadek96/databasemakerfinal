@@ -51,12 +51,27 @@ const App = {
     /**
      * Set up navigation between different views
      */
+    // Add this to client/static/js/app.js or update the existing setupNavigation function:
+
     setupNavigation: function() {
         const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
         const viewSections = document.querySelectorAll('.view-section');
 
+        console.log("Setting up navigation with", navLinks.length, "links and", viewSections.length, "view sections");
+
+        // First, hide all sections except the dashboard
+        viewSections.forEach(section => {
+            if (section.id === 'dashboard-view') {
+                section.classList.add('active');
+            } else {
+                section.classList.remove('active');
+            }
+        });
+
+        // Add click handlers to navigation links
         navLinks.forEach(link => {
             link.addEventListener('click', function(e) {
+                console.log("Nav link clicked:", this.id);
                 e.preventDefault();
 
                 // Remove active class from all nav links and add to clicked link
@@ -65,6 +80,8 @@ const App = {
 
                 // Show the corresponding view and hide others
                 const targetView = this.id.replace('nav-', '') + '-view';
+                console.log("Target view:", targetView);
+
                 viewSections.forEach(section => {
                     section.classList.remove('active');
                     if (section.id === targetView) {

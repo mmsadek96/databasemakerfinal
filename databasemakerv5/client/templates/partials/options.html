@@ -6,11 +6,11 @@
         <div class="card mb-4">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title">Options Chain</h5>
-                    <div class="input-group w-25">
+                    <h5 class="card-title mb-0">Options Chain</h5>
+                    <div class="input-group" style="max-width: 400px;">
                         <input type="text" class="form-control" id="options-symbol" placeholder="Enter symbol">
                         <div class="input-group-text">
-                            <div class="form-check">
+                            <div class="form-check mb-0">
                                 <input class="form-check-input" type="checkbox" id="include-greeks">
                                 <label class="form-check-label" for="include-greeks">Include Greeks</label>
                             </div>
@@ -20,15 +20,14 @@
                 </div>
             </div>
             <div class="card-body">
-                <div id="options-data-tabs">
-                    <ul class="nav nav-tabs" id="options-tabs" role="tablist">
-                        <!-- Expiration date tabs will be generated dynamically -->
+                <div id="options-data-container">
+                    <ul class="nav nav-tabs mb-3" id="options-tabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-options" type="button" role="tab">All Expirations</button>
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-options" type="button" role="tab" aria-controls="all-options" aria-selected="true">All Expirations</button>
                         </li>
                     </ul>
-                    <div class="tab-content mt-3" id="options-tabs-content">
-                        <div class="tab-pane fade show active" id="all-options" role="tabpanel">
+                    <div class="tab-content" id="options-tabs-content">
+                        <div class="tab-pane fade show active" id="all-options" role="tabpanel" aria-labelledby="all-tab">
                             <p class="text-muted">Enter a stock symbol to load options data</p>
                         </div>
                         <!-- Other tab panes will be generated dynamically -->
@@ -38,3 +37,38 @@
         </div>
     </div>
 </div>
+
+<!-- Options templates - These sections will be populated dynamically by JavaScript -->
+
+<!-- Options Analytics Section -->
+<template id="options-analytics-template">
+    <div id="options-analytics" class="card mb-4 d-none">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Options Analytics</h5>
+        </div>
+        <div class="card-body">
+            <!-- Content unchanged -->
+        </div>
+    </div>
+</template>
+
+<!-- Advanced Analysis Section -->
+<template id="advanced-analysis-template">
+    <div id="advanced-analysis" class="d-none">
+        <!-- Content unchanged -->
+    </div>
+</template>
+
+<!-- Options Filtering Controls -->
+<template id="options-filters-template">
+    <div class="card mb-4">
+        <!-- Content unchanged -->
+    </div>
+</template>
+
+<!-- Option Details Modal Template -->
+<template id="option-details-modal-template">
+    <div class="modal fade" id="optionDetailsModal" tabindex="-1" aria-hidden="true">
+        <!-- Content unchanged -->
+    </div>
+</template>
