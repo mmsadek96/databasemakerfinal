@@ -185,6 +185,7 @@ const DashboardView = {
      * Load market movers data
      */
     loadMarketMovers: function() {
+        // Using arrow function to preserve 'this' context
         API.getMarketMovers()
             .then(data => {
                 this.updateMarketMoversTable('gainers-table', data.gainers);
@@ -230,17 +231,33 @@ const DashboardView = {
 
             // Add rows for current page data
             currentPageData.forEach(item => {
+                // Convert string values to numbers and handle invalid data
+                const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+                const changeAmount = typeof item.change === 'string' ? parseFloat(item.change) : item.change;
+                const changePercentage = typeof item.changePercent === 'string' ? parseFloat(item.changePercent) : item.changePercent;
+                const volume = typeof item.volume === 'string' ? parseFloat(item.volume) : item.volume;
+
+                // Create safe formatted versions with fallbacks
+                const safeChangeAmount = Number.isFinite(changeAmount) ?
+                    `${changeAmount >= 0 ? '+' : ''}${changeAmount.toFixed(2)}` : 'N/A';
+
+                const safeChangePercentage = Number.isFinite(changePercentage) ?
+                    `${changePercentage >= 0 ? '+' : ''}${changePercentage.toFixed(2)}%` : 'N/A';
+
+                // Determine CSS classes safely
+                const changeAmountClass = Number.isFinite(changeAmount) ?
+                    (changeAmount >= 0 ? 'text-success' : 'text-danger') : '';
+
+                const changePercentageClass = Number.isFinite(changePercentage) ?
+                    (changePercentage >= 0 ? 'text-success' : 'text-danger') : '';
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><a href="#" class="stock-link" data-symbol="${item.ticker}">${item.ticker}</a></td>
-                    <td>${formatCurrency(item.price)}</td>
-                    <td class="${item.change_amount >= 0 ? 'text-success' : 'text-danger'}">
-                        ${item.change_amount >= 0 ? '+' : ''}${item.change_amount.toFixed(2)}
-                    </td>
-                    <td class="${item.change_percentage >= 0 ? 'text-success' : 'text-danger'}">
-                        ${item.change_percentage >= 0 ? '+' : ''}${item.change_percentage.toFixed(2)}%
-                    </td>
-                    <td>${formatNumber(item.volume)}</td>
+                    <td><a href="#" class="stock-link" data-symbol="${item.ticker || item.symbol}">${item.ticker || item.symbol || 'N/A'}</a></td>
+                    <td>${formatCurrency(price)}</td>
+                    <td class="${changeAmountClass}">${safeChangeAmount}</td>
+                    <td class="${changePercentageClass}">${safeChangePercentage}</td>
+                    <td>${formatNumber(volume)}</td>
                 `;
                 tbody.appendChild(row);
             });
@@ -479,50 +496,62 @@ const DashboardView = {
      * @param {string} symbol - Stock symbol
      * @param {Array} data - Stock data
      */
-    updateChartWithData: function(symbol, data) {
-        // Ensure data is sorted by date (oldest first)
-        data.sort((a, b) => new Date(a.date) - new Date(b.date));
+    /**
+ * Update chart with processed data
+ * @param {string} symbol - Stock symbol
+ * @param {Array} data - Stock data
+ */
+updateChartWithData: function(symbol, data) {
+    // Ensure data is sorted by date (oldest first)
+    data.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // Filter data to match the selected date range
-        const startDate = new Date(document.getElementById('stock-start-date').value);
-        const endDate = new Date(document.getElementById('stock-end-date').value);
+    // Filter data to match the selected date range
+    const startDate = new Date(document.getElementById('stock-start-date').value);
+    const endDate = new Date(document.getElementById('stock-end-date').value);
 
-        const filteredData = data.filter(d => {
-            const date = new Date(d.date);
-            return date >= startDate && date <= endDate;
-        });
+    const filteredData = data.filter(d => {
+        const date = new Date(d.date);
+        return date >= startDate && date <= endDate;
+    });
 
-        if (filteredData.length === 0) {
-            throw new Error('No data available for the selected date range');
-        }
+    if (filteredData.length === 0) {
+        throw new Error('No data available for the selected date range');
+    }
 
-        // Format data for Chart.js
-        const chartData = filteredData.map(d => {
-            return {
-                x: new Date(d.date),
-                y: d.adjusted_close
-            };
-        });
+    // Format data for Chart.js
+    const chartData = filteredData.map(d => {
+        return {
+            x: new Date(d.date),
+            y: d.adjusted_close
+        };
+    });
 
-        // Determine appropriate time unit based on date range
-        const firstDate = chartData[0].x;
-        const lastDate = chartData[chartData.length - 1].x;
-        const daysDiff = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+    // Determine appropriate time unit based on date range
+    const firstDate = chartData[0].x;
+    const lastDate = chartData[chartData.length - 1].x;
+    const daysDiff = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
 
-        let timeUnit = 'day';
-        if (daysDiff > 365) {
-            timeUnit = 'month';
-        } else if (daysDiff > 60) {
-            timeUnit = 'week';
-        }
+    let timeUnit = 'day';
+    if (daysDiff > 365) {
+        timeUnit = 'month';
+    } else if (daysDiff > 60) {
+        timeUnit = 'week';
+    }
 
-        // Update chart with the parsed data
-        this.quickStockChart.options.scales.x.time.unit = timeUnit;
-        this.quickStockChart.data.datasets[0].data = chartData;
-        this.quickStockChart.data.datasets[0].label = `${symbol} Price`;
-        this.quickStockChart.options.plugins.title.text = `${symbol} Stock Price`;
-        this.quickStockChart.update();
+    // Update chart options
+    this.quickStockChart.options.scales.x.time.unit = timeUnit;
+
+    // Add max height to ensure chart doesn't stretch too far
+    this.quickStockChart.options.maintainAspectRatio = false;
+    this.quickStockChart.canvas.parentNode.style.height = '400px';
+
+    // Update chart data
+    this.quickStockChart.data.datasets[0].data = chartData;
+    this.quickStockChart.data.datasets[0].label = `${symbol} Price`;
+    this.quickStockChart.options.plugins.title.text = `${symbol} Stock Price`;
+    this.quickStockChart.update();
     }
 };
 
 export default DashboardView;
+

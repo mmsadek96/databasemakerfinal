@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     PORT: int = Field(8000, env="PORT")
 
     # API Keys
+
     ALPHA_VANTAGE_API_KEY: str = Field(..., env="ALPHA_VANTAGE_API_KEY")
     OPENAI_API_KEY: str = Field(..., env="OPENAI_API_KEY")
 

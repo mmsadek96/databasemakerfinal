@@ -27,7 +27,11 @@ class OptionsService:
             options_data = await self.client.get_options_data(symbol, require_greeks)
 
             if not options_data:
-                raise ValueError(f"No options data found for symbol: {symbol}")
+                # Check specifically if this is a premium endpoint issue
+                logger.warning(
+                    f"No options data available for {symbol} - this could be because REALTIME_OPTIONS is a premium endpoint")
+                raise ValueError(
+                    f"No options data found for symbol: {symbol}. The REALTIME_OPTIONS endpoint requires a premium Alpha Vantage subscription.")
 
             self.cache[cache_key] = options_data
             return options_data

@@ -161,22 +161,65 @@ class AlphaVantageClient:
 
     async def get_options_data(self, symbol: str, require_greeks: bool = False) -> List[Dict[str, Any]]:
         """Get options data for a symbol"""
+        # Set up the request parameters
         params = {
             'function': 'REALTIME_OPTIONS',
-            'symbol': symbol,
-            'entitlement': 'realtime'
+            'symbol': symbol
         }
 
+        # Add the require_greeks parameter if needed
         if require_greeks:
             params['require_greeks'] = 'true'
 
-        data = await self._make_request(params)
+        try:
+            # Make the API request
+            data = await self._make_request(params)
 
-        if 'options' not in data:
-            logger.warning(f"No options data found for {symbol}")
+            # Check if the response contains a data array
+            if isinstance(data, dict) and 'data' in data and isinstance(data['data'], list):
+                # Map the Alpha Vantage response keys to our expected format
+                mapped_options = []
+                for option in data['data']:
+                    # Map fields to match your application's expected model
+                    mapped_option = {
+                        'contract_name': option.get('contractID', ''),
+                        'contract_type': option.get('type', ''),  # 'call' or 'put'
+                        'expiration_date': option.get('expiration', ''),
+                        'strike_price': float(option.get('strike', 0)),
+                        'last_price': float(option.get('last', 0)),
+                        'bid': float(option.get('bid', 0)),
+                        'ask': float(option.get('ask', 0)),
+                        'change': 0.0,  # Not provided by Alpha Vantage, set a default
+                        'change_percentage': 0.0,  # Not provided by Alpha Vantage, set a default
+                        'volume': int(option.get('volume', 0)),
+                        'open_interest': int(option.get('open_interest', 0)),
+                    }
+
+                    # Add Greeks if they exist and are requested
+                    if require_greeks and 'implied_volatility' in option:
+                        mapped_option.update({
+                            'implied_volatility': float(option.get('implied_volatility', 0)),
+                            'delta': float(option.get('delta', 0)),
+                            'gamma': float(option.get('gamma', 0)),
+                            'theta': float(option.get('theta', 0)),
+                            'vega': float(option.get('vega', 0)),
+                        })
+
+                    mapped_options.append(mapped_option)
+
+                return mapped_options
+
+            # Check if there's a message about premium endpoint
+            if isinstance(data, dict) and 'message' in data and 'premium' in data['message'].lower():
+                logger.warning("The REALTIME_OPTIONS endpoint requires a premium subscription to Alpha Vantage.")
+                return []
+
+            logger.warning(
+                f"Unexpected response format for options data: {data.keys() if isinstance(data, dict) else type(data)}")
             return []
-
-        return data.get('options', [])
+        except Exception as e:
+            logger.error(f"Error fetching options data from Alpha Vantage: {str(e)}")
+            return []
 
     async def get_market_movers(self) -> Dict[str, Any]:
         """Get market movers (gainers, losers, most active)"""

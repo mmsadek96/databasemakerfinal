@@ -1,0 +1,159 @@
+/* Options Chain Enhanced Styling */
+
+/* Tab navigation for expirations */
+#options-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 1px;
+}
+
+#options-tabs .nav-item {
+    white-space: nowrap;
+}
+
+#options-tabs .nav-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    font-size: 0.9rem;
+}
+
+#options-tabs .nav-link.active {
+    color: #495057;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: 600;
+}
+
+/* Options table */
+.options-table {
+    font-size: 0.875rem;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.options-table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    vertical-align: middle;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.options-table td {
+    padding: 0.25rem 0.5rem;
+    vertical-align: middle;
+}
+
+/* Odd-even row coloring */
+.options-table tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Highlight strike column */
+.options-table .strike-price {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+}
+
+/* Call and put coloring */
+.call-cell {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.put-cell {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Hover effect */
+.options-table tr:hover td {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* At-the-money highlighting */
+.options-table tr.table-primary td:not(.strike-price) {
+    background-color: rgba(0, 123, 255, 0.15);
+}
+
+.options-table tr.table-info td:not(.strike-price) {
+    background-color: rgba(23, 162, 184, 0.08);
+}
+
+/* Advanced analysis section */
+#advanced-analysis .card {
+    height: 100%;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#advanced-analysis .card-header {
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+/* Options analytics cards */
+#options-analytics .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.2s;
+}
+
+#options-analytics .card:hover {
+    transform: translateY(-2px);
+}
+
+#options-analytics .card-header {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+/* Sentiment and metrics styling */
+.metric {
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Strategy builder section */
+#strategy-builder-result {
+    padding: 0.5rem;
+    min-height: 100px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    /* Simplify table on small screens */
+    .options-table {
+        font-size: 0.75rem;
+    }
+    
+    /* Hide less important columns */
+    .options-table th:nth-child(3),
+    .options-table td:nth-child(3),
+    .options-table th:nth-child(4),
+    .options-table td:nth-child(4) {
+        display: none;
+    }
+    
+    /* Stack the filters */
+    #options-filters .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}
