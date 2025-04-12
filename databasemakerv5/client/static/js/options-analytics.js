@@ -27,16 +27,22 @@ const OptionsAnalytics = {
      */
     initialize: function(optionsView) {
         this.optionsView = optionsView;
+
+        // Add console logging to help with debugging
+        console.log("OptionsAnalytics initialized with optionsView:", optionsView ? "provided" : "missing");
     },
 
     /**
      * Initialize chart instances when needed
      */
     initializeChartsIfNeeded: function() {
+        console.log("Initializing options analytics charts if needed");
+
         // Volatility Skew Chart
         if (!this.volatilitySkewChart) {
             const skewCtx = document.getElementById('volatility-skew-chart');
             if (skewCtx) {
+                console.log("Creating volatility skew chart");
                 this.volatilitySkewChart = new Chart(skewCtx.getContext('2d'), {
                     type: 'scatter',
                     data: {
@@ -93,6 +99,8 @@ const OptionsAnalytics = {
                         }
                     }
                 });
+            } else {
+                console.error("Volatility skew chart canvas element not found");
             }
         }
 
@@ -100,6 +108,7 @@ const OptionsAnalytics = {
         if (!this.putCallRatioChart) {
             const ratioCtx = document.getElementById('put-call-ratio-chart');
             if (ratioCtx) {
+                console.log("Creating put/call ratio chart");
                 this.putCallRatioChart = new Chart(ratioCtx.getContext('2d'), {
                     type: 'bar',
                     data: {
@@ -133,6 +142,8 @@ const OptionsAnalytics = {
                         }
                     }
                 });
+            } else {
+                console.error("Put/call ratio chart canvas element not found");
             }
         }
 
@@ -140,6 +151,7 @@ const OptionsAnalytics = {
         if (!this.optionVolumeChart) {
             const volumeCtx = document.getElementById('option-volume-chart');
             if (volumeCtx) {
+                console.log("Creating option volume chart");
                 this.optionVolumeChart = new Chart(volumeCtx.getContext('2d'), {
                     type: 'bar',
                     data: {
@@ -185,6 +197,8 @@ const OptionsAnalytics = {
                         }
                     }
                 });
+            } else {
+                console.error("Option volume chart canvas element not found");
             }
         }
     },
@@ -221,10 +235,15 @@ const OptionsAnalytics = {
      * @param {string} symbol - Stock symbol
      */
     updateOptionsAnalytics: function(data, symbol) {
+        console.log("Updating options analytics with", data.length, "options for", symbol);
+
         // Show analytics section
         const optionsAnalytics = document.getElementById('options-analytics');
         if (optionsAnalytics) {
             optionsAnalytics.classList.remove('d-none');
+            console.log("Options analytics section displayed");
+        } else {
+            console.error("Could not find options-analytics element!");
         }
 
         // Calculate total open interest and volume
@@ -233,19 +252,46 @@ const OptionsAnalytics = {
         let totalCallVolume = 0;
         let totalPutVolume = 0;
 
+        // Add debugging to trace how we're processing the data
+        console.log("Processing options data for analytics calculations");
+
+        let callCount = 0;
+        let putCount = 0;
+
         data.forEach(option => {
-            if (option.contract_type === 'call') {
-                totalCallOI += option.open_interest;
-                totalCallVolume += option.volume;
-            } else if (option.contract_type === 'put') {
-                totalPutOI += option.open_interest;
-                totalPutVolume += option.volume;
+            // Add type checking to handle potential data format issues
+            if (!option || typeof option !== 'object') {
+                console.warn("Invalid option data item:", option);
+                return;
+            }
+
+            const contractType = option.contract_type?.toLowerCase();
+
+            // Debug log every 10th option to avoid flooding the console
+            if ((callCount + putCount) % 10 === 0) {
+                console.log("Sample option:", JSON.stringify(option, null, 2));
+            }
+
+            if (contractType === 'call') {
+                callCount++;
+                totalCallOI += option.open_interest || 0;
+                totalCallVolume += option.volume || 0;
+            } else if (contractType === 'put') {
+                putCount++;
+                totalPutOI += option.open_interest || 0;
+                totalPutVolume += option.volume || 0;
+            } else {
+                console.warn("Unknown option type:", contractType, "for option:", option);
             }
         });
 
-        // Calculate put/call ratios
-        const putCallOIRatio = totalPutOI / (totalCallOI || 1);
-        const putCallVolumeRatio = totalPutVolume / (totalCallVolume || 1);
+        console.log(`Processed ${callCount} calls and ${putCount} puts`);
+        console.log(`Total call volume: ${totalCallVolume}, Total put volume: ${totalPutVolume}`);
+        console.log(`Total call OI: ${totalCallOI}, Total put OI: ${totalPutOI}`);
+
+        // Calculate put/call ratios - avoid division by zero
+        const putCallOIRatio = totalCallOI > 0 ? (totalPutOI / totalCallOI).toFixed(2) : 'N/A';
+        const putCallVolumeRatio = totalCallVolume > 0 ? (totalPutVolume / totalCallVolume).toFixed(2) : 'N/A';
 
         // Calculate average implied volatility
         let totalCallIV = 0;
@@ -254,16 +300,18 @@ const OptionsAnalytics = {
         let countPutIV = 0;
 
         data.forEach(option => {
-            if (option.implied_volatility) {
+            if (option.implied_volatility !== undefined && option.implied_volatility !== null) {
                 if (option.contract_type === 'call') {
-                    totalCallIV += option.implied_volatility;
+                    totalCallIV += parseFloat(option.implied_volatility);
                     countCallIV++;
                 } else if (option.contract_type === 'put') {
-                    totalPutIV += option.implied_volatility;
+                    totalPutIV += parseFloat(option.implied_volatility);
                     countPutIV++;
                 }
             }
         });
+
+        console.log(`IV stats - Calls: ${countCallIV} count, ${totalCallIV} total | Puts: ${countPutIV} count, ${totalPutIV} total`);
 
         const avgCallIV = countCallIV ? totalCallIV / countCallIV : 0;
         const avgPutIV = countPutIV ? totalPutIV / countPutIV : 0;
@@ -272,21 +320,29 @@ const OptionsAnalytics = {
         // Calculate volatility skew (difference between put and call IV)
         const volSkew = avgPutIV - avgCallIV;
 
+        console.log(`Average call IV: ${avgCallIV}, Average put IV: ${avgPutIV}, Vol skew: ${volSkew}`);
+
         // Count unique expiration dates
         const expirationDates = new Set();
-        data.forEach(option => expirationDates.add(option.expiration_date));
+        data.forEach(option => {
+            if (option.expiration_date) {
+                expirationDates.add(option.expiration_date);
+            }
+        });
+
+        console.log(`Found ${expirationDates.size} unique expiration dates`);
 
         // Update analytics display - safely handling potential null elements
-        this.updateElementText('total-call-oi', formatNumber(totalCallOI));
-        this.updateElementText('total-put-oi', formatNumber(totalPutOI));
-        this.updateElementText('put-call-oi-ratio', putCallOIRatio.toFixed(2));
-        this.updateElementText('total-call-volume', formatNumber(totalCallVolume));
-        this.updateElementText('total-put-volume', formatNumber(totalPutVolume));
-        this.updateElementText('put-call-volume-ratio', putCallVolumeRatio.toFixed(2));
-        this.updateElementText('avg-call-iv', (avgCallIV * 100).toFixed(2) + '%');
-        this.updateElementText('avg-put-iv', (avgPutIV * 100).toFixed(2) + '%');
-        this.updateElementText('volatility-skew', (volSkew * 100).toFixed(2) + '%');
-        this.updateElementText('expiration-count', expirationDates.size);
+        this.safeUpdateElementText('total-call-oi', this.formatNumber(totalCallOI));
+        this.safeUpdateElementText('total-put-oi', this.formatNumber(totalPutOI));
+        this.safeUpdateElementText('put-call-oi-ratio', putCallOIRatio);
+        this.safeUpdateElementText('total-call-volume', this.formatNumber(totalCallVolume));
+        this.safeUpdateElementText('total-put-volume', this.formatNumber(totalPutVolume));
+        this.safeUpdateElementText('put-call-volume-ratio', putCallVolumeRatio);
+        this.safeUpdateElementText('avg-call-iv', (avgCallIV * 100).toFixed(2) + '%');
+        this.safeUpdateElementText('avg-put-iv', (avgPutIV * 100).toFixed(2) + '%');
+        this.safeUpdateElementText('volatility-skew', (volSkew * 100).toFixed(2) + '%');
+        this.safeUpdateElementText('expiration-count', expirationDates.size);
 
         // Update the vol skew classification
         const skewElement = document.getElementById('skew-classification');
@@ -307,7 +363,7 @@ const OptionsAnalytics = {
         }
 
         // Update sentiment indicator
-        const putCallRatio = putCallVolumeRatio;
+        const putCallRatio = putCallVolumeRatio !== 'N/A' ? parseFloat(putCallVolumeRatio) : 1.0;
         const sentimentElement = document.getElementById('options-sentiment');
         if (sentimentElement) {
             if (putCallRatio > 1.5) {
@@ -335,6 +391,9 @@ const OptionsAnalytics = {
         this.updateVolatilitySkewChart();
         this.updatePutCallRatioChart();
         this.updateOptionsVolumeChart();
+
+        // Update implied move calculation
+        this.updateImpliedMoveAnalysis();
     },
 
     /**
@@ -342,116 +401,314 @@ const OptionsAnalytics = {
      * @param {string} elementId - ID of element to update
      * @param {string} text - Text to set
      */
-    updateElementText: function(elementId, text) {
-        const element = document.getElementById(elementId);
+    safeUpdateElementText: function(elementId, text) {
+        // Try finding element directly
+        let element = document.getElementById(elementId);
+
+        // If not found, try looking within the implied move container
+        if (!element) {
+            const container = document.getElementById('implied-move-container');
+            if (container) {
+                element = container.querySelector(`#${elementId}`);
+            }
+        }
+
         if (element) {
             element.textContent = text;
+            console.log(`Updated ${elementId} to "${text}"`);
+        } else {
+            console.warn(`Element ${elementId} not found`);
         }
+    },
+
+    /**
+     * Format number with commas
+     * @param {number} value - Value to format
+     * @returns {string} - Formatted number string
+     */
+    formatNumber: function(value) {
+        if (value === undefined || value === null) return 'N/A';
+
+        // Format with commas
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     },
 
     /**
      * Update the implied move analysis based on ATM options
      */
     updateImpliedMoveAnalysis: function() {
-        if (!this.optionsView.currentOptionsData || !this.optionsView.stockData) {
-            return;
+    console.log("Updating implied move analysis");
+
+    // Make sure we have options data and stock data
+    if (!this.optionsView || !this.optionsView.stockData) {
+        console.error("Missing required data for implied move analysis");
+        return;
+    }
+
+    // At the beginning of updateImpliedMoveAnalysis
+    if (!this.ensureElementsExist()) {
+        console.error("Cannot update implied move - required elements missing");
+        return;
+    }
+
+    // Get current stock price
+    const stockData = this.optionsView.stockData;
+    if (!stockData || stockData.length === 0) {
+        console.error("Stock data is empty");
+        return;
+    }
+
+    const lastDataPoint = stockData[stockData.length - 1];
+    console.log("Last stock data point:", lastDataPoint);
+
+    const currentPrice = parseFloat(lastDataPoint.close);
+    console.log("Current stock price:", currentPrice);
+
+    if (isNaN(currentPrice) || currentPrice <= 0) {
+        console.error("Invalid current price:", currentPrice);
+        return;
+    }
+
+    // Check for options data
+    const options = this.optionsView.currentOptionsData;
+    if (!options || options.length === 0) {
+        console.error("No options data available");
+        return;
+    }
+
+    // Get the active tab directly from the DOM
+    const activeTab = document.querySelector('#options-tabs .nav-link.active');
+    if (!activeTab) {
+        console.error("No active tab found");
+        return;
+    }
+
+    const expDate = activeTab.textContent.trim();
+    console.log("Active expiration tab:", expDate);
+
+    if (expDate === 'All Expirations') {
+        console.warn("All Expirations tab is active - select a specific date");
+        this.safeUpdateElementText('implied-move', "Select date");
+        this.safeUpdateElementText('expected-range', "Select a specific expiration");
+        return;
+    }
+
+    // Force update current stock price display
+    this.safeUpdateElementText('current-stock-price-move', '$' + currentPrice.toFixed(2));
+
+    // Filter options for current expiration date
+    const formatDate = this.optionsView.formatDate || (d => d);  // Get format function or use identity
+
+    console.log("Looking for options with expiration matching:", expDate);
+    console.log("First few options:", options.slice(0, 3));
+
+    // Try different ways to match the expiration
+    const expirationOptions = options.filter(opt => {
+        // Convert option's expiration to the same format as displayed in tab
+        const formattedDate = formatDate(opt.expiration_date);
+        return formattedDate === expDate || opt.expiration_date === expDate;
+    });
+
+    console.log(`Found ${expirationOptions.length} options for expiration ${expDate}`);
+
+    if (expirationOptions.length === 0) {
+        console.error(`No options found for expiration: ${expDate}`);
+        return;
+    }
+
+    // Find ATM strike
+    console.log("Finding ATM strike for price:", currentPrice);
+    console.log("Available strikes:", expirationOptions.map(o => o.strike_price).slice(0, 10));
+
+    // Get unique strikes
+    const strikes = [...new Set(expirationOptions.map(o => parseFloat(o.strike_price)))].sort((a, b) => a - b);
+
+    if (strikes.length === 0) {
+        console.error("No valid strike prices found");
+        return;
+    }
+
+    // Find closest strike to current price
+    let closestStrike = strikes[0];
+    let minDiff = Math.abs(strikes[0] - currentPrice);
+
+    strikes.forEach(strike => {
+        const diff = Math.abs(strike - currentPrice);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closestStrike = strike;
+        }
+    });
+
+    console.log(`Closest strike to ${currentPrice} is ${closestStrike}`);
+
+    // Find ATM options
+    const atmCall = expirationOptions.find(opt =>
+        opt.contract_type === 'call' && parseFloat(opt.strike_price) === closestStrike
+    );
+
+    const atmPut = expirationOptions.find(opt =>
+        opt.contract_type === 'put' && parseFloat(opt.strike_price) === closestStrike
+    );
+
+    console.log("ATM call:", atmCall ? "Found" : "Not found");
+    console.log("ATM put:", atmPut ? "Found" : "Not found");
+
+    if (!atmCall || !atmPut) {
+        console.error("Could not find both ATM call and put options");
+        return;
+    }
+
+    // Calculate days to expiry
+    const today = new Date();
+    const expiry = new Date(atmCall.expiration_date);
+    const daysToExpiry = Math.max(1, Math.round((expiry - today) / (1000 * 60 * 60 * 24)));
+
+    console.log(`Days to expiry: ${daysToExpiry}`);
+
+    // Calculate implied move
+    const callPrice = parseFloat(atmCall.last_price);
+    const putPrice = parseFloat(atmPut.last_price);
+
+    if (isNaN(callPrice) || isNaN(putPrice)) {
+        console.error("Invalid option prices", {callPrice, putPrice});
+        return;
+    }
+
+    const straddle = callPrice + putPrice;
+    const impliedMove = straddle / currentPrice;
+
+    console.log(`Straddle price: $${straddle.toFixed(2)}, Implied move: ${(impliedMove * 100).toFixed(2)}%`);
+
+    // Update display
+    this.safeUpdateElementText('implied-move', (impliedMove * 100).toFixed(2) + '%');
+    this.safeUpdateElementText('straddle-price', '$' + straddle.toFixed(2));
+    this.safeUpdateElementText('days-to-expiry', daysToExpiry);
+
+    const lowRange = currentPrice * (1 - impliedMove);
+    const highRange = currentPrice * (1 + impliedMove);
+    this.safeUpdateElementText('expected-range', `$${lowRange.toFixed(2)} - $${highRange.toFixed(2)}`);
+
+    // Historical volatility
+    const historicalVol = document.getElementById('historical-volatility');
+    const histVolValue = historicalVol ? historicalVol.textContent : '0.00%';
+    this.safeUpdateElementText('historical-vol', histVolValue);
+
+    // Make sure container is visible
+    const moveContainer = document.getElementById('implied-move-container');
+    if (moveContainer) {
+        moveContainer.classList.remove('d-none');
+    }
+
+        // Add at the end of updateImpliedMoveAnalysis
+    console.log("Current DOM values:");
+    console.log("implied-move:", document.getElementById('implied-move')?.textContent);
+    console.log("expected-range:", document.getElementById('expected-range')?.textContent);
+    console.log("days-to-expiry:", document.getElementById('days-to-expiry')?.textContent);
+    console.log("straddle-price:", document.getElementById('straddle-price')?.textContent);
+
+    return true;  // Successfully updated
+},
+
+    /**
+     * Find the strike price closest to the current price
+     * @param {number} currentPrice - Current stock price
+     * @param {Array} options - Array of option contracts
+     * @returns {number} - Closest strike price
+     */
+    findClosestStrike: function(currentPrice, options) {
+        console.log(`Finding closest strike to ${currentPrice} among ${options.length} options`);
+
+        // Get unique strike prices
+        const strikes = [...new Set(options.map(opt => opt.strike_price))];
+        console.log("Available strikes:", strikes);
+
+        if (!strikes.length) {
+            console.error("No strike prices found");
+            return currentPrice; // Return current price as fallback
         }
 
-        // Get current stock price
-        const currentPrice = this.optionsView.stockData[this.optionsView.stockData.length - 1].close;
+        // Find the closest strike
+        let closestStrike = strikes[0];
+        let minDiff = Math.abs(strikes[0] - currentPrice);
 
-        // Get the active expiration date tab
-        const activeTab = document.querySelector('#options-tabs .nav-link.active');
-        if (!activeTab) return;
+        strikes.forEach(strike => {
+            const diff = Math.abs(strike - currentPrice);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestStrike = strike;
+            }
+        });
 
-        const expDate = activeTab.textContent;
-        if (expDate === 'All Expirations') return;
-
-        // Filter options for the selected expiration
-        const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
-            this.optionsView.formatDate(opt.expiration_date) === expDate
-        );
-
-        // Find ATM call and put
-        const atmStrike = this.optionsView.findClosestStrike(currentPrice, expirationOptions);
-        const atmCall = expirationOptions.find(opt =>
-            opt.contract_type === 'call' && opt.strike_price === atmStrike
-        );
-        const atmPut = expirationOptions.find(opt =>
-            opt.contract_type === 'put' && opt.strike_price === atmStrike
-        );
-
-        // Calculate days to expiration
-        const today = new Date();
-        const expiryDate = new Date(atmCall?.expiration_date || atmPut?.expiration_date);
-        const daysToExpiry = Math.max(1, Math.round((expiryDate - today) / (1000 * 60 * 60 * 24)));
-
-        // Calculate implied move using straddle price
-        let impliedMove = 0;
-        let straddle = 0;
-
-        if (atmCall && atmPut) {
-            // Straddle price = ATM Call Price + ATM Put Price
-            straddle = atmCall.last_price + atmPut.last_price;
-
-            // Implied move = Straddle Price / Current Stock Price
-            impliedMove = straddle / currentPrice;
-        }
-
-        // Update display
-        this.updateElementText('implied-move', (impliedMove * 100).toFixed(2) + '%');
-
-        const lowRange = currentPrice * (1 - impliedMove);
-        const highRange = currentPrice * (1 + impliedMove);
-        this.updateElementText('expected-range', `${formatCurrency(lowRange)} - ${formatCurrency(highRange)}`);
-        this.updateElementText('days-to-expiry', daysToExpiry);
-        this.updateElementText('straddle-price', formatCurrency(straddle));
-
-        const moveContainer = document.getElementById('implied-move-container');
-        if (moveContainer) {
-            moveContainer.classList.remove('d-none');
-        }
+        console.log(`Closest strike to ${currentPrice} is ${closestStrike} (diff: ${minDiff})`);
+        return closestStrike;
     },
 
     /**
      * Update volatility skew chart
      */
     updateVolatilitySkewChart: function() {
-        if (!this.volatilitySkewChart || !this.optionsView.currentOptionsData) return;
+        if (!this.volatilitySkewChart || !this.optionsView || !this.optionsView.currentOptionsData) {
+            console.error("Cannot update volatility skew chart - missing required data");
+            return;
+        }
 
         // Get the active expiration date tab
         const activeTab = document.querySelector('#options-tabs .nav-link.active');
-        if (!activeTab) return;
+        if (!activeTab) {
+            console.warn("Cannot update volatility skew chart - no active tab");
+            return;
+        }
 
-        const expDate = activeTab.textContent;
-        if (expDate === 'All Expirations') return;
+        const expDate = activeTab.textContent.trim();
+        if (expDate === 'All Expirations') {
+            console.warn("All Expirations tab is active, cannot update volatility skew chart");
+            return;
+        }
 
         // Filter options for the selected expiration
         const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
-            this.optionsView.formatDate(opt.expiration_date) === expDate && opt.implied_volatility
+            this.optionsView.formatDate(opt.expiration_date) === expDate &&
+            opt.implied_volatility !== undefined &&
+            opt.implied_volatility !== null &&
+            !isNaN(parseFloat(opt.implied_volatility))
         );
+
+        console.log(`Found ${expirationOptions.length} options with IV data for ${expDate}`);
+
+        if (expirationOptions.length === 0) {
+            console.warn("No options with IV data for selected expiration");
+            return;
+        }
 
         // Prepare data for calls and puts
         const callData = [];
         const putData = [];
 
         expirationOptions.forEach(option => {
-            if (option.contract_type === 'call') {
-                callData.push({
-                    x: option.strike_price,
-                    y: option.implied_volatility
-                });
-            } else if (option.contract_type === 'put') {
-                putData.push({
-                    x: option.strike_price,
-                    y: option.implied_volatility
-                });
+            const iv = parseFloat(option.implied_volatility);
+            const strike = parseFloat(option.strike_price);
+
+            // Validate the data before adding to chart
+            if (!isNaN(iv) && !isNaN(strike)) {
+                const dataPoint = {
+                    x: strike,
+                    y: iv
+                };
+
+                if (option.contract_type === 'call') {
+                    callData.push(dataPoint);
+                } else if (option.contract_type === 'put') {
+                    putData.push(dataPoint);
+                }
             }
         });
 
         // Sort data by strike price
         callData.sort((a, b) => a.x - b.x);
         putData.sort((a, b) => a.x - b.x);
+
+        console.log(`Prepared ${callData.length} call and ${putData.length} put data points for IV skew chart`);
 
         // Update chart data
         this.volatilitySkewChart.data.datasets[0].data = callData;
@@ -462,30 +719,45 @@ const OptionsAnalytics = {
 
         // Update chart
         this.volatilitySkewChart.update();
+        console.log("Volatility skew chart updated");
     },
 
     /**
      * Update put/call ratio chart
      */
     updatePutCallRatioChart: function() {
-        if (!this.putCallRatioChart || !this.optionsView.currentOptionsData) return;
+        if (!this.putCallRatioChart || !this.optionsView || !this.optionsView.currentOptionsData) {
+            console.error("Cannot update put/call ratio chart - missing required data");
+            return;
+        }
 
         // Group options by expiration date
         const expirationMap = new Map();
 
         this.optionsView.currentOptionsData.forEach(option => {
+            if (!option.expiration_date) return;
+
             const expDate = this.optionsView.formatDate(option.expiration_date);
             if (!expirationMap.has(expDate)) {
                 expirationMap.set(expDate, { calls: 0, puts: 0 });
             }
 
             const data = expirationMap.get(expDate);
+            const volume = parseInt(option.volume) || 0;
+
             if (option.contract_type === 'call') {
-                data.calls += option.volume;
+                data.calls += volume;
             } else if (option.contract_type === 'put') {
-                data.puts += option.volume;
+                data.puts += volume;
             }
         });
+
+        console.log(`Found volume data for ${expirationMap.size} expiration dates`);
+
+        if (expirationMap.size === 0) {
+            console.warn("No expiration dates with volume data found");
+            return;
+        }
 
         // Calculate put/call ratio for each expiration
         const labels = [];
@@ -493,8 +765,11 @@ const OptionsAnalytics = {
 
         expirationMap.forEach((data, expDate) => {
             labels.push(expDate);
+            // Avoid division by zero
             ratios.push(data.calls > 0 ? data.puts / data.calls : 0);
         });
+
+        console.log(`Calculated P/C ratios for ${labels.length} expiration dates`);
 
         // Update chart data
         this.putCallRatioChart.data.labels = labels;
@@ -502,42 +777,65 @@ const OptionsAnalytics = {
 
         // Update chart
         this.putCallRatioChart.update();
+        console.log("Put/call ratio chart updated");
     },
 
     /**
      * Update options volume chart
      */
     updateOptionsVolumeChart: function() {
-        if (!this.optionVolumeChart || !this.optionsView.currentOptionsData) return;
+        if (!this.optionVolumeChart || !this.optionsView || !this.optionsView.currentOptionsData) {
+            console.error("Cannot update options volume chart - missing required data");
+            return;
+        }
 
         // Get the active expiration date tab
         const activeTab = document.querySelector('#options-tabs .nav-link.active');
-        if (!activeTab) return;
+        if (!activeTab) {
+            console.warn("Cannot update options volume chart - no active tab");
+            return;
+        }
 
-        const expDate = activeTab.textContent;
-        if (expDate === 'All Expirations') return;
+        const expDate = activeTab.textContent.trim();
+        if (expDate === 'All Expirations') {
+            console.warn("All Expirations tab is active, cannot update options volume chart");
+            return;
+        }
 
         // Filter options for the selected expiration
         const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
             this.optionsView.formatDate(opt.expiration_date) === expDate
         );
 
+        console.log(`Found ${expirationOptions.length} options for ${expDate} to use in volume chart`);
+
+        if (expirationOptions.length === 0) {
+            console.warn("No options found for selected expiration");
+            return;
+        }
+
         // Group by strike price
         const strikeMap = new Map();
 
         expirationOptions.forEach(option => {
-            const strike = option.strike_price;
+            const strike = parseFloat(option.strike_price);
+            if (isNaN(strike)) return;
+
             if (!strikeMap.has(strike)) {
                 strikeMap.set(strike, { calls: 0, puts: 0 });
             }
 
             const data = strikeMap.get(strike);
+            const volume = parseInt(option.volume) || 0;
+
             if (option.contract_type === 'call') {
-                data.calls += option.volume;
+                data.calls += volume;
             } else if (option.contract_type === 'put') {
-                data.puts += option.volume;
+                data.puts += volume;
             }
         });
+
+        console.log(`Grouped volume data for ${strikeMap.size} different strike prices`);
 
         // Convert to arrays for the chart
         const strikes = Array.from(strikeMap.keys()).sort((a, b) => a - b);
@@ -545,7 +843,7 @@ const OptionsAnalytics = {
         const putVolumes = strikes.map(strike => strikeMap.get(strike).puts);
 
         // Update chart data
-        this.optionVolumeChart.data.labels = strikes;
+        this.optionVolumeChart.data.labels = strikes.map(strike => strike.toFixed(2));
         this.optionVolumeChart.data.datasets[0].data = callVolumes;
         this.optionVolumeChart.data.datasets[1].data = putVolumes;
 
@@ -554,17 +852,61 @@ const OptionsAnalytics = {
 
         // Update chart
         this.optionVolumeChart.update();
+        console.log("Options volume chart updated");
     },
 
+    ensureElementsExist: function() {
+    // Check if key elements exist in the DOM
+    const elements = ['implied-move', 'expected-range', 'days-to-expiry', 'straddle-price'];
+    let allExist = true;
+
+    for (const id of elements) {
+        if (!document.getElementById(id)) {
+            allExist = false;
+            console.error(`Element with ID '${id}' not found in DOM`);
+        }
+    }
+
+    if (!allExist) {
+        console.log("Some elements are missing. Container may not be properly initialized.");
+
+        // Try to find the container
+        const container = document.getElementById('implied-move-container');
+        if (!container) {
+            console.error("Implied move container not found in DOM");
+            return false;
+        }
+
+        // Check if container is hidden
+        if (container.classList.contains('d-none')) {
+            console.log("Implied move container is hidden, making visible");
+            container.classList.remove('d-none');
+        }
+    }
+
+    return allExist;
+},
     /**
      * Update all charts at once
      */
     updateAllCharts: function() {
-        if (this.optionsView.currentOptionsData) {
-            this.updateVolatilitySkewChart();
-            this.updatePutCallRatioChart();
-            this.updateOptionsVolumeChart();
+        console.log("Updating all options analytics charts");
+
+        if (!this.optionsView || !this.optionsView.currentOptionsData) {
+            console.error("Cannot update charts - missing options data");
+            return;
         }
+
+        // Make sure charts are initialized
+        this.initializeChartsIfNeeded();
+
+        // Update each chart
+        this.updateVolatilitySkewChart();
+        this.updatePutCallRatioChart();
+        this.updateOptionsVolumeChart();
+
+        // Also update the implied move analysis
+        this.updateImpliedMoveAnalysis();
     }
 };
 

@@ -43,6 +43,7 @@ const OptionsView = {
     /**
      * Set up event listeners
      */
+    // Fix for the toggle button in options.js - Update setupEventListeners method
     setupEventListeners: function() {
         // Load options data button
         document.getElementById('load-options-button').addEventListener('click', () => {
@@ -62,12 +63,15 @@ const OptionsView = {
             }
         });
 
-        // Toggle advanced view - using event delegation
+        // Improved toggle button event handling - more direct and with debugging
         document.addEventListener('click', (e) => {
-            if (e.target.id === 'toggle-advanced') {
+            if (e.target && e.target.id === 'toggle-advanced') {
+                console.log("Toggle advanced button clicked");
                 const advancedSection = document.getElementById('advanced-analysis');
                 if (advancedSection) {
                     advancedSection.classList.toggle('d-none');
+                    console.log("Advanced analysis section toggled:",
+                        !advancedSection.classList.contains('d-none') ? "shown" : "hidden");
 
                     if (advancedSection.classList.contains('d-none')) {
                         e.target.textContent = 'Show Advanced Analysis';
@@ -76,6 +80,8 @@ const OptionsView = {
                         // Update charts when section becomes visible
                         OptionsAnalytics.updateAllCharts();
                     }
+                } else {
+                    console.error("Could not find advanced-analysis element!");
                 }
             }
         });
@@ -142,16 +148,36 @@ const OptionsView = {
      * @param {string} symbol - Stock symbol
      */
     loadUnderlyingData: function(symbol) {
-        // Get current date
+        // Instead of creating new dates, use the date inputs that are already set up
+        const startDateInput = document.getElementById('stock-start-date');
+        const endDateInput = document.getElementById('stock-end-date');
+
+        // Get values from the inputs, with fallbacks to ensure we don't use future dates
         const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
 
-        // Get date from 1 year ago
-        const yearAgo = new Date();
-        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        // Format yesterday as a string for comparison
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-        // Format dates
-        const endDate = today.toISOString().split('T')[0];
-        const startDate = yearAgo.toISOString().split('T')[0];
+        // Get dates from inputs, with validation
+        let startDate = startDateInput ? startDateInput.value : '';
+        let endDate = endDateInput ? endDateInput.value : '';
+
+        // Ensure we're not requesting future data
+        if (!endDate || endDate > yesterdayStr) {
+            endDate = yesterdayStr;
+        }
+
+        // Ensure start date is before end date and not in the future
+        if (!startDate || startDate > endDate) {
+            // Default to 1 year ago from end date
+            const defaultStartDate = new Date(endDate);
+            defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
+            startDate = defaultStartDate.toISOString().split('T')[0];
+        }
+
+        console.log(`Loading stock data for ${symbol} from ${startDate} to ${endDate}`);
 
         API.getStockData(symbol, startDate, endDate)
             .then(data => {
@@ -285,23 +311,40 @@ const OptionsView = {
     /**
      * Apply filters to the options display
      */
+    // Add this to the OptionsView object in options.js
     applyFilters: function() {
+        console.log("Applying options filters");
+
         const filterMoneynessEl = document.getElementById('filter-moneyness');
         const filterVolumeEl = document.getElementById('filter-min-volume');
+        const filterOIEl = document.getElementById('filter-min-oi');
 
-        if (!filterMoneynessEl || !filterVolumeEl) return;
+        if (!filterMoneynessEl || !filterVolumeEl || !filterOIEl) {
+            console.error("Filter elements not found");
+            return;
+        }
 
         const moneynessFilter = filterMoneynessEl.value;
         const minVolumeFilter = parseInt(filterVolumeEl.value) || 0;
+        const minOIFilter = parseInt(filterOIEl.value) || 0;
+
+        console.log(`Applying filters: Moneyness=${moneynessFilter}, MinVolume=${minVolumeFilter}, MinOI=${minOIFilter}`);
 
         // Get all option rows
         const optionRows = document.querySelectorAll('#options-tabs-content table tr:not(:first-child)');
+        console.log(`Found ${optionRows.length} option rows to filter`);
 
         // Current stock price
         const stockPriceEl = document.getElementById('current-stock-price');
-        if (!stockPriceEl) return;
+        if (!stockPriceEl) {
+            console.error("Stock price element not found");
+            return;
+        }
 
         const currentPrice = parseFloat(stockPriceEl.textContent.replace(/[^0-9.]/g, ''));
+        console.log(`Current stock price: ${currentPrice}`);
+
+        let visibleRows = 0;
 
         optionRows.forEach(row => {
             let show = true;
@@ -336,11 +379,23 @@ const OptionsView = {
                         show = false;
                     }
                 }
+
+                // Apply OI filter
+                if (minOIFilter > 0) {
+                    const oiCell = row.cells[row.cells.length - 7]; // Assuming OI is 7th from the end
+                    const oi = parseInt(oiCell.textContent.replace(/[^0-9]/g, '')) || 0;
+                    if (oi < minOIFilter) {
+                        show = false;
+                    }
+                }
             }
 
             // Show or hide the row
             row.style.display = show ? '' : 'none';
+            if (show) visibleRows++;
         });
+
+        console.log(`Filtering complete. ${visibleRows} rows visible out of ${optionRows.length}`);
     },
 
     /**
@@ -777,7 +832,10 @@ const OptionsView = {
      * Show detailed information about an option contract
      * @param {Object} option - Option data
      */
+    // Update the showOptionDetails method in options.js
     showOptionDetails: function(option) {
+        console.log("Showing option details:", option);
+
         // Calculate additional metrics
         const spread = option.ask - option.bid;
         const spreadPct = option.bid > 0 ? (spread / option.bid) * 100 : 0;
@@ -791,157 +849,65 @@ const OptionsView = {
             if (modalTemplate) {
                 document.body.appendChild(modalTemplate.content.cloneNode(true));
                 modalElement = document.getElementById('optionDetailsModal');
+                console.log("Created modal from template");
             } else {
-                // Create modal if template doesn't exist
-                const modalContainer = document.createElement('div');
-                modalContainer.innerHTML = `
-                    <div class="modal fade" id="optionDetailsModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header bg-dark text-white">
-                                    <h5 class="modal-title" id="optionDetailsModalLabel"></h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modalContainer);
-                modalElement = document.getElementById('optionDetailsModal');
+                console.error("Option details modal template not found!");
+                return;
             }
         }
 
         // Set the modal title
         const modalTitle = modalElement.querySelector('.modal-title');
         if (modalTitle) {
-            modalTitle.textContent = `${option.contract_name} (${option.contract_type.toUpperCase()})`;
+            modalTitle.textContent = `${option.contract_name || option.contract_type.toUpperCase() + ' ' + option.strike_price}`;
         }
 
-        // Set the modal content
-        const modalBody = modalElement.querySelector('.modal-body');
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card border-primary mb-3">
-                            <div class="card-header bg-primary text-white">Contract Details</div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Symbol:</span>
-                                    <span class="fw-bold">${this.currentSymbol}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Contract Type:</span>
-                                    <span class="fw-bold ${option.contract_type === 'call' ? 'text-success' : 'text-danger'}">
-                                        ${option.contract_type.toUpperCase()}
-                                    </span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Strike Price:</span>
-                                    <span class="fw-bold">${formatCurrency(option.strike_price)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Expiration Date:</span>
-                                    <span class="fw-bold">${this.formatDate(option.expiration_date)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Contract Size:</span>
-                                    <span class="fw-bold">100 shares</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-success mb-3">
-                            <div class="card-header bg-success text-white">Pricing</div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Last Price:</span>
-                                    <span class="fw-bold">${formatCurrency(option.last_price)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Bid Price:</span>
-                                    <span class="fw-bold">${formatCurrency(option.bid)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Ask Price:</span>
-                                    <span class="fw-bold">${formatCurrency(option.ask)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Bid-Ask Spread:</span>
-                                    <span class="fw-bold ${spreadPct > 10 ? 'text-danger' : ''}">${formatCurrency(spread)} (${spreadPct.toFixed(1)}%)</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Contract Value:</span>
-                                    <span class="fw-bold">${formatCurrency(option.last_price * 100)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card border-info mb-3">
-                            <div class="card-header bg-info text-white">Volume & Open Interest</div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Volume:</span>
-                                    <span class="fw-bold">${formatNumber(option.volume)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Open Interest:</span>
-                                    <span class="fw-bold">${formatNumber(option.open_interest)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Volume / OI Ratio:</span>
-                                    <span class="fw-bold">${option.open_interest > 0 ? (option.volume / option.open_interest).toFixed(2) : 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-warning mb-3">
-                            <div class="card-header bg-warning text-dark">Greeks</div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Implied Volatility:</span>
-                                    <span class="fw-bold">${option.implied_volatility ? (option.implied_volatility * 100).toFixed(2) + '%' : 'N/A'}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Delta:</span>
-                                    <span class="fw-bold">${option.delta ? option.delta.toFixed(4) : 'N/A'}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Gamma:</span>
-                                    <span class="fw-bold">${option.gamma ? option.gamma.toFixed(4) : 'N/A'}</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Theta:</span>
-                                    <span class="fw-bold">${option.theta ? option.theta.toFixed(4) : 'N/A'}</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span>Vega:</span>
-                                    <span class="fw-bold">${option.vega ? option.vega.toFixed(4) : 'N/A'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-center mt-2">
-                    <button class="btn btn-primary me-2" id="option-analyze-btn">
-                        <i class="bi bi-graph-up"></i> Analyze Profit/Loss
-                    </button>
-                    <button class="btn btn-success me-2" id="option-add-strategy-btn">
-                        <i class="bi bi-plus-circle"></i> Add to Strategy
-                    </button>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                </div>
-            `;
-        }
+        // Format currency
+        const formatCurrency = (value) => {
+            return '$' + parseFloat(value).toFixed(2);
+        };
+
+        // Format number
+        const formatNumber = (value) => {
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+
+        // Helper to update an element's text
+        const updateElementText = (id, text) => {
+            const element = modalElement.querySelector(`#${id}`);
+            if (element) {
+                element.textContent = text;
+            }
+        };
+
+        // Populate modal data
+        updateElementText('modal-symbol', this.currentSymbol);
+        updateElementText('modal-contract-type', option.contract_type.toUpperCase());
+        updateElementText('modal-strike', formatCurrency(option.strike_price));
+        updateElementText('modal-expiration', this.formatDate(option.expiration_date));
+        updateElementText('modal-last-price', formatCurrency(option.last_price));
+        updateElementText('modal-bid', formatCurrency(option.bid));
+        updateElementText('modal-ask', formatCurrency(option.ask));
+        updateElementText('modal-spread', formatCurrency(spread) + ` (${spreadPct.toFixed(1)}%)`);
+        updateElementText('modal-contract-value', formatCurrency(option.last_price * 100));
+        updateElementText('modal-volume', formatNumber(option.volume));
+        updateElementText('modal-open-interest', formatNumber(option.open_interest));
+
+        const volumeOIRatio = option.open_interest > 0 ?
+            (option.volume / option.open_interest).toFixed(2) : 'N/A';
+        updateElementText('modal-volume-oi-ratio', volumeOIRatio);
+
+        // Greeks
+        updateElementText('modal-iv', option.implied_volatility ?
+            (option.implied_volatility * 100).toFixed(2) + '%' : 'N/A');
+        updateElementText('modal-delta', option.delta ?
+            option.delta.toFixed(4) : 'N/A');
+        updateElementText('modal-gamma', option.gamma ?
+            option.gamma.toFixed(4) : 'N/A');
+        updateElementText('modal-theta', option.theta ?
+            option.theta.toFixed(4) : 'N/A');
+        updateElementText('modal-vega', option.vega ?
+            option.vega.toFixed(4) : 'N/A');
 
         // Initialize the modal
         const modal = new bootstrap.Modal(modalElement);
@@ -949,13 +915,21 @@ const OptionsView = {
 
         // Add event listeners for action buttons
         document.getElementById('option-analyze-btn')?.addEventListener('click', () => {
-            OptionsStrategies.analyzeOptionProfitLoss(option);
-            modal.hide();
+            if (this.optionsStrategies) {
+                this.optionsStrategies.analyzeOptionProfitLoss(option);
+                modal.hide();
+            } else {
+                console.error("Options strategies module not initialized");
+            }
         });
 
         document.getElementById('option-add-strategy-btn')?.addEventListener('click', () => {
-            OptionsStrategies.addToCustomStrategy(option);
-            modal.hide();
+            if (this.optionsStrategies) {
+                this.optionsStrategies.addToCustomStrategy(option);
+                modal.hide();
+            } else {
+                console.error("Options strategies module not initialized");
+            }
         });
     },
 

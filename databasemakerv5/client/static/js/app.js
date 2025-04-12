@@ -95,6 +95,8 @@ const App = {
     /**
      * Initialize date inputs with default values
      */
+    // In app.js, update the initializeDateInputs function
+
     initializeDateInputs: function() {
         // Get current date
         const today = new Date();
@@ -104,7 +106,7 @@ const App = {
             return date.toISOString().split('T')[0];
         };
 
-        // Set default dates for all date inputs (default to 1 year)
+        // Set default dates for all date inputs (default to 1 year BACK IN TIME)
         document.querySelectorAll('input[type="date"]').forEach(input => {
             if (input.id.includes('end-date')) {
                 // Set end date to yesterday to ensure all data exists
@@ -115,6 +117,7 @@ const App = {
                 // Default to 1 year ago from yesterday
                 const startDate = new Date(today);
                 startDate.setFullYear(startDate.getFullYear() - 1);
+                startDate.setDate(startDate.getDate() - 1); // Make sure it's exactly 1 year before end date
                 input.value = formatDate(startDate);
             }
         });
