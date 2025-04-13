@@ -1,40 +1,38 @@
 /**
- * Options strategies module
- * @module options-strategies
+ * Options Strategies Module
+ * Responsible for building and analyzing options trading strategies
  */
-
-import { formatCurrency } from './utils.js';
-import App from './app.js';
-
-/**
- * Options strategies controller
- */
-const OptionsStrategies = {
+class OptionsStrategiesModule {
     /**
-     * Reference to the main options view
+     * Constructor
+     * @param {Object} optionsView - Reference to the main options view
      */
-    optionsView: null,
+    constructor(optionsView) {
+        this.optionsView = optionsView;
 
-    /**
-     * Custom strategy components
-     */
-    customStrategy: {
-        legs: [],
-        name: 'Custom Strategy'
-    },
+        // Current strategy
+        this.currentStrategy = null;
+
+        // Custom strategy components
+        this.customStrategy = {
+            legs: [],
+            name: 'Custom Strategy'
+        };
+    }
 
     /**
      * Initialize the options strategies module
-     * @param {Object} optionsView - Reference to the main options view
      */
-    initialize: function(optionsView) {
-        console.log("Initializing options strategies module");
-        this.optionsView = optionsView;
+    initialize() {
+        console.log("Options Strategies Module initialized");
+        this.setupEventListeners();
+    }
 
-      // Make strategies accessible globally without circular reference
-      window.OptionsStrategiesInstance = this;
-
-        // Set up strategy button event listeners
+    /**
+     * Set up event listeners
+     */
+    setupEventListeners() {
+        // Set up strategy button event listeners using event delegation
         document.addEventListener('click', e => {
             if (e.target.id === 'strategy-long-call') {
                 console.log("Long Call button clicked");
@@ -60,66 +58,176 @@ const OptionsStrategies = {
                 this.clearStrategy();
             }
         });
-
-        // Check if strategy-expiration-select element exists in the DOM
-        const expirationDateSelect = document.getElementById('strategy-expiration-select');
-        console.log("Expiration date select element exists:", !!expirationDateSelect);
-    },
+    }
 
     /**
      * Build an options strategy
      * @param {string} strategyType - Type of strategy to build
      */
-    buildStrategy: function(strategyType) {
+    buildStrategy(strategyType) {
         console.log(`Building strategy: ${strategyType}`);
 
-        // Get options view either from instance or global
-        const optionsView = this.optionsView || window.OptionsView;
-
-        if (!optionsView || !optionsView.currentOptionsData || !optionsView.stockData) {
+        if (!this.optionsView.currentOptionsData || !this.optionsView.stockData) {
             console.warn("Missing required data for strategy building");
-            App.showNotification('Please load options data first', 'warning');
+            // Use App.showNotification if available
+            if (window.App && App.showNotification) {
+                App.showNotification('Please load options data first', 'warning');
+            } else {
+                alert('Please load options data first');
+            }
             return;
         }
 
-        console.log(`Options data available: ${optionsView.currentOptionsData.length} options`);
-        console.log(`Stock data available: ${optionsView.stockData.length} data points`);
+        console.log(`Options data available: ${this.optionsView.currentOptionsData.length} options`);
+        console.log(`Stock data available: ${this.optionsView.stockData.length} data points`);
 
-        const currentPrice = optionsView.stockData[optionsView.stockData.length - 1].close;
+        const currentPrice = this.optionsView.stockData[this.optionsView.stockData.length - 1].close;
         console.log(`Current stock price: ${currentPrice}`);
 
-        // Get the selected expiration date
-        const expirationDateSelect = document.getElementById('strategy-expiration-select');
-        if (!expirationDateSelect || !expirationDateSelect.value) {
-            App.showNotification('Please select an expiration date first', 'warning');
-            return;
+        // Get the active expiration date tab
+        const activeTab = document.querySelector('#options-tabs .nav-link.active');
+        console.log("Active tab:", activeTab ? activeTab.textContent : "None");
+
+        // Check for static strategy-expiration-date dropdown first
+        const expirationDateSelect = document.getElementById('strategy-expiration-date');
+        if (expirationDateSelect && expirationDateSelect.value) {
+            console.log("Using pre-selected expiration date from dropdown:", expirationDateSelect.value);
+
+            // Filter options for the selected expiration
+            const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
+                this.optionsView.formatDate(opt.expiration_date) === expirationDateSelect.value
+            );
+
+            console.log(`Found ${expirationOptions.length} options for ${expirationDateSelect.value}`);
+
+            if (expirationOptions.length > 0) {
+                // Continue with strategy building using the filtered options
+                this.buildStrategyWithOptions(strategyType, expirationOptions, currentPrice, expirationDateSelect.value);
+                return;
+            }
         }
 
-            // Get the raw expiration date value from the select element
-        const expDate = expirationSelect.value;
-        console.log(`Selected expiration date (raw): ${expDate}`);
+        // Check if All Expirations tab is active
+        if (!activeTab || activeTab.id === 'all-tab' || activeTab.textContent === 'All Expirations') {
+            console.log("All Expirations tab is active, creating date selector UI");
 
-        // Filter options for this exact expiration date string
-        const expirationOptions = optionsView.currentOptionsData.filter(opt =>
-            opt.expiration_date === expDate
+            // Instead of showing warning, create a date selector UI
+            const strategyContainer = document.getElementById('strategy-builder-result');
+            if (strategyContainer) {
+                // Get all available expiration dates
+                const expirationDates = new Set();
+
+                // Debug log the first few options to see expiration_date format
+                console.log("Sample options data:");
+                const sampleOptions = this.optionsView.currentOptionsData.slice(0, 3);
+                sampleOptions.forEach((opt, idx) => {
+                    console.log(`Option ${idx+1}:`, {
+                        expiration_date: opt.expiration_date,
+                        formatted: this.optionsView.formatDate ? this.optionsView.formatDate(opt.expiration_date) : 'formatDate not available',
+                        contract_type: opt.contract_type,
+                        strike_price: opt.strike_price
+                    });
+                });
+
+                this.optionsView.currentOptionsData.forEach(option => {
+                    if (option.expiration_date) {
+                        const formattedDate = this.optionsView.formatDate ?
+                            this.optionsView.formatDate(option.expiration_date) :
+                            option.expiration_date;
+                        expirationDates.add(formattedDate);
+                    }
+                });
+
+                console.log("Available expiration dates:", Array.from(expirationDates));
+
+                // Create date selector UI
+                let html = `
+                    <div class="alert alert-info">
+                        <p><strong>Please select a specific expiration date:</strong></p>
+                        <select id="strategy-expiration-select" class="form-select mb-3">
+                            <option value="" disabled selected>Select an expiration date</option>
+                `;
+
+                // Add options for each expiration date
+                Array.from(expirationDates).sort().forEach(date => {
+                    html += `<option value="${date}">${date}</option>`;
+                });
+
+                html += `
+                        </select>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Strategy Type:</strong> ${strategyType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </div>
+                            <button id="use-selected-expiration" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Apply Selected Date
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                strategyContainer.innerHTML = html;
+                console.log("Date selector UI created");
+
+                // Add event listener to the button
+                setTimeout(() => {
+                    const applyButton = document.getElementById('use-selected-expiration');
+                    if (applyButton) {
+                        console.log("Adding event listener to Apply button");
+                        applyButton.addEventListener('click', () => {
+                            const selectedDate = document.getElementById('strategy-expiration-select')?.value;
+                            console.log("Selected date:", selectedDate);
+
+                            if (selectedDate) {
+                                // Filter options for the selected expiration
+                                const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
+                                    this.optionsView.formatDate(opt.expiration_date) === selectedDate
+                                );
+
+                                console.log(`Found ${expirationOptions.length} options for ${selectedDate}`);
+
+                                // Continue with strategy building using the filtered options
+                                this.buildStrategyWithOptions(strategyType, expirationOptions, currentPrice, selectedDate);
+                            } else {
+                                if (window.App && App.showNotification) {
+                                    App.showNotification('Please select an expiration date', 'warning');
+                                } else {
+                                    alert('Please select an expiration date');
+                                }
+                            }
+                        });
+                    } else {
+                        console.error("Apply button not found!");
+                    }
+                }, 100);
+
+                return;
+            }
+        }
+
+        // If a specific expiration date tab is already active, proceed with normal strategy building
+        const expDate = activeTab.textContent.trim();
+        console.log(`Using expiration date from active tab: ${expDate}`);
+
+        // Filter options for the selected expiration
+        const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
+            this.optionsView.formatDate(opt.expiration_date) === expDate
         );
 
-        this.buildStrategyWithOptions(strategyType, expirationOptions, currentPrice, optionsView.formatDate(expDate));
-
-
         console.log(`Found ${expirationOptions.length} options for ${expDate}`);
 
-        if (!expirationOptions || expirationOptions.length === 0) {
-            App.showNotification('No options found for the selected expiration date', 'warning');
+        if (expirationOptions.length === 0) {
+            if (window.App && App.showNotification) {
+                App.showNotification('No options data found for the selected expiration date', 'warning');
+            } else {
+                alert('No options data found for the selected expiration date');
+            }
             return;
         }
-        console.log(`Found ${expirationOptions.length} options for ${expDate}`);
-
-        console.log(`Found ${expirationOptions.length} options for ${expDate}`);
 
         // Continue with strategy building using the filtered options
         this.buildStrategyWithOptions(strategyType, expirationOptions, currentPrice, expDate);
-    },
+    }
 
     /**
      * Build a strategy with specific options
@@ -128,7 +236,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @param {string} expDate - Expiration date
      */
-    buildStrategyWithOptions: function(strategyType, expirationOptions, currentPrice, expDate) {
+    buildStrategyWithOptions(strategyType, expirationOptions, currentPrice, expDate) {
         console.log(`Building ${strategyType} strategy for ${expDate} with ${expirationOptions.length} options`);
 
         // Strategies implementation
@@ -159,9 +267,12 @@ const OptionsStrategies = {
         strategy.expirationDate = expDate;
         console.log("Strategy built:", strategy);
 
+        // Store the strategy
+        this.currentStrategy = strategy;
+
         // Display the strategy
         this.displayStrategy(strategy);
-    },
+    }
 
     /**
      * Build a long call strategy
@@ -169,7 +280,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @returns {Object} - Strategy configuration
      */
-    buildLongCallStrategy: function(options, currentPrice) {
+    buildLongCallStrategy(options, currentPrice) {
         console.log("Building long call strategy");
 
         // Find slightly OTM call
@@ -211,7 +322,7 @@ const OptionsStrategies = {
             maxLoss: -cost,
             breakEven: parseFloat(call.strike_price) + parseFloat(call.last_price)
         };
-    },
+    }
 
     /**
      * Build a long put strategy
@@ -219,7 +330,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @returns {Object} - Strategy configuration
      */
-    buildLongPutStrategy: function(options, currentPrice) {
+    buildLongPutStrategy(options, currentPrice) {
         console.log("Building long put strategy");
 
         // Find slightly OTM put
@@ -262,7 +373,7 @@ const OptionsStrategies = {
             maxLoss: -cost,
             breakEven: parseFloat(put.strike_price) - parseFloat(put.last_price)
         };
-    },
+    }
 
     /**
      * Build a bull call spread strategy
@@ -270,7 +381,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @returns {Object} - Strategy configuration
      */
-    buildBullSpreadStrategy: function(options, currentPrice) {
+    buildBullSpreadStrategy(options, currentPrice) {
         console.log("Building bull call spread strategy");
 
         // Find ATM call to buy
@@ -325,7 +436,7 @@ const OptionsStrategies = {
             maxLoss: -cost,
             breakEven: lowerStrike + (cost / 100)
         };
-    },
+    }
 
     /**
      * Build a bear put spread strategy
@@ -333,7 +444,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @returns {Object} - Strategy configuration
      */
-    buildBearSpreadStrategy: function(options, currentPrice) {
+    buildBearSpreadStrategy(options, currentPrice) {
         console.log("Building bear put spread strategy");
 
         // Find ATM put to buy
@@ -388,7 +499,7 @@ const OptionsStrategies = {
             maxLoss: -cost,
             breakEven: higherStrike - (cost / 100)
         };
-    },
+    }
 
     /**
      * Build an iron condor strategy
@@ -396,7 +507,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @returns {Object} - Strategy configuration
      */
-    buildIronCondorStrategy: function(options, currentPrice) {
+    buildIronCondorStrategy(options, currentPrice) {
         console.log("Building iron condor strategy");
 
         // Find put strikes (lower side of the condor)
@@ -482,7 +593,7 @@ const OptionsStrategies = {
             lowerBreakEven: putSellStrike - (credit / 100),
             upperBreakEven: callSellStrike + (credit / 100)
         };
-    },
+    }
 
     /**
      * Build a butterfly spread strategy
@@ -490,7 +601,7 @@ const OptionsStrategies = {
      * @param {number} currentPrice - Current stock price
      * @returns {Object} - Strategy configuration
      */
-    buildButterflyStrategy: function(options, currentPrice) {
+    buildButterflyStrategy(options, currentPrice) {
         console.log("Building butterfly spread strategy");
 
         // Find strikes for butterfly (centered around the current price)
@@ -561,42 +672,13 @@ const OptionsStrategies = {
             lowerBreakEven: lowerStrike + (cost / 100),
             upperBreakEven: upperStrike - (cost / 100)
         };
-    },
-
-    /**
-     * Find strike price closest to target price
-     * @param {number} targetPrice - Target price
-     * @param {Array} options - Available options
-     * @returns {number} - Closest strike price
-     */
-    findClosestStrike: function(targetPrice, options) {
-        // Get unique strike prices
-        const strikes = [...new Set(options.map(opt => parseFloat(opt.strike_price)))];
-
-        if (strikes.length === 0) {
-            return targetPrice; // Return target price as fallback
-        }
-
-        // Find closest strike
-        let closestStrike = strikes[0];
-        let minDiff = Math.abs(strikes[0] - targetPrice);
-
-        strikes.forEach(strike => {
-            const diff = Math.abs(strike - targetPrice);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closestStrike = strike;
-            }
-        });
-
-        return closestStrike;
-    },
+    }
 
     /**
      * Display options strategy in the UI
      * @param {Object} strategy - Strategy configuration
      */
-    displayStrategy: function(strategy) {
+    displayStrategy(strategy) {
         console.log("Displaying strategy:", strategy);
 
         const strategyContainer = document.getElementById('strategy-builder-result');
@@ -635,8 +717,8 @@ const OptionsStrategies = {
                 <tr>
                     <td class="${leg.action === 'buy' ? 'text-success' : 'text-danger'} fw-bold">${leg.action.toUpperCase()}</td>
                     <td>${leg.type.toUpperCase()}</td>
-                    <td>${formatCurrency(leg.strike)}</td>
-                    <td>${formatCurrency(leg.price)}</td>
+                    <td>${this.formatCurrency(leg.strike)}</td>
+                    <td>${this.formatCurrency(leg.price)}</td>
                     <td>${leg.expiration}</td>
                     <td>${leg.quantity || 1}</td>
                 </tr>
@@ -657,12 +739,12 @@ const OptionsStrategies = {
                         <div class="card-body">
                             <p><strong>Strategy Type:</strong> ${strategy.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
                             <p><strong>Expiration Date:</strong> ${strategy.expirationDate || strategy.legs[0]?.expiration || 'N/A'}</p>
-                            <p><strong>Cost:</strong> ${strategy.cost < 0 ? 'Credit of ' + formatCurrency(-strategy.cost) : formatCurrency(strategy.cost)}</p>
-                            <p><strong>Max Profit:</strong> ${typeof strategy.maxProfit === 'string' ? strategy.maxProfit : formatCurrency(strategy.maxProfit)}</p>
-                            <p><strong>Max Loss:</strong> ${typeof strategy.maxLoss === 'string' ? strategy.maxLoss : formatCurrency(strategy.maxLoss)}</p>
-                            ${strategy.breakEven ? `<p><strong>Break-Even:</strong> ${formatCurrency(strategy.breakEven)}</p>` : ''}
-                            ${strategy.lowerBreakEven ? `<p><strong>Lower Break-Even:</strong> ${formatCurrency(strategy.lowerBreakEven)}</p>` : ''}
-                            ${strategy.upperBreakEven ? `<p><strong>Upper Break-Even:</strong> ${formatCurrency(strategy.upperBreakEven)}</p>` : ''}
+                            <p><strong>Cost:</strong> ${strategy.cost < 0 ? 'Credit of ' + this.formatCurrency(-strategy.cost) : this.formatCurrency(strategy.cost)}</p>
+                            <p><strong>Max Profit:</strong> ${typeof strategy.maxProfit === 'string' ? strategy.maxProfit : this.formatCurrency(strategy.maxProfit)}</p>
+                            <p><strong>Max Loss:</strong> ${typeof strategy.maxLoss === 'string' ? strategy.maxLoss : this.formatCurrency(strategy.maxLoss)}</p>
+                            ${strategy.breakEven ? `<p><strong>Break-Even:</strong> ${this.formatCurrency(strategy.breakEven)}</p>` : ''}
+                            ${strategy.lowerBreakEven ? `<p><strong>Lower Break-Even:</strong> ${this.formatCurrency(strategy.lowerBreakEven)}</p>` : ''}
+                            ${strategy.upperBreakEven ? `<p><strong>Upper Break-Even:</strong> ${this.formatCurrency(strategy.upperBreakEven)}</p>` : ''}
                         </div>
                     </div>
                 </div>
@@ -684,15 +766,13 @@ const OptionsStrategies = {
             </div>
         `;
 
-        // Save the current strategy
-        this.currentStrategy = strategy;
         console.log("Strategy display complete");
-    },
+    }
 
     /**
      * Export strategy to CSV
      */
-    exportStrategy: function() {
+    exportStrategy() {
         if (!this.currentStrategy) return;
 
         const strategy = this.currentStrategy;
@@ -726,24 +806,24 @@ const OptionsStrategies = {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    },
+    }
 
     /**
      * Clear current strategy
      */
-    clearStrategy: function() {
+    clearStrategy() {
         const strategyContainer = document.getElementById('strategy-builder-result');
         if (strategyContainer) {
             strategyContainer.innerHTML = '';
         }
         this.currentStrategy = null;
-    },
+    }
 
     /**
      * Analyze option profit/loss
      * @param {Object} option - Option contract
      */
-    analyzeOptionProfitLoss: function(option) {
+    analyzeOptionProfitLoss(option) {
         // Create a single-leg strategy
         const strategy = {
             type: option.contract_type === 'call' ? 'long-call' : 'long-put',
@@ -761,13 +841,13 @@ const OptionsStrategies = {
 
         // Call common display method
         this.displayStrategy(strategy);
-    },
+    }
 
     /**
      * Add option to custom strategy
      * @param {Object} option - Option contract
      */
-    addToCustomStrategy: function(option) {
+    addToCustomStrategy(option) {
         // Add leg to custom strategy
         this.customStrategy.legs.push({
             type: option.contract_type,
@@ -778,16 +858,20 @@ const OptionsStrategies = {
         });
 
         // Display notification
-        App.showNotification(`Added ${option.contract_type.toUpperCase()} ${option.strike_price} to custom strategy`, 'success');
+        if (window.App && App.showNotification) {
+            App.showNotification(`Added ${option.contract_type.toUpperCase()} ${option.strike_price} to custom strategy`, 'success');
+        } else {
+            alert(`Added ${option.contract_type.toUpperCase()} ${option.strike_price} to custom strategy`);
+        }
 
         // Display the custom strategy
         this.displayCustomStrategy();
-    },
+    }
 
     /**
      * Display the custom strategy
      */
-    displayCustomStrategy: function() {
+    displayCustomStrategy() {
         // Only display if we have legs
         if (this.customStrategy.legs.length === 0) return;
 
@@ -807,9 +891,95 @@ const OptionsStrategies = {
             maxLoss: cost > 0 ? -cost : 'Limited by strikes'
         };
 
+        // Save as current strategy
+        this.currentStrategy = strategy;
+
         // Display the strategy
         this.displayStrategy(strategy);
     }
-};
 
-export default OptionsStrategies;
+    /**
+     * Update the strategy expiration dates dropdown
+     */
+    updateStrategyExpirationDates() {
+        console.log("Updating strategy expiration dates dropdown");
+
+        const expirationSelect = document.getElementById('strategy-expiration-date');
+        if (!expirationSelect) {
+            console.warn("Strategy expiration date select element not found");
+            return;
+        }
+
+        // Clear existing options
+        expirationSelect.innerHTML = '<option value="" selected disabled>Select an expiration date</option>';
+
+        // Check if we have options data
+        if (!this.optionsView.currentOptionsData || this.optionsView.currentOptionsData.length === 0) {
+            console.warn("No options data available to populate expiration dates");
+            return;
+        }
+
+        // Extract unique expiration dates
+        const expirationDates = new Set();
+        this.optionsView.currentOptionsData.forEach(option => {
+            if (option.expiration_date) {
+                const formattedDate = this.optionsView.formatDate(option.expiration_date);
+                expirationDates.add(formattedDate);
+            }
+        });
+
+        // Sort dates
+        const sortedDates = Array.from(expirationDates).sort();
+        console.log(`Found ${sortedDates.length} unique expiration dates`);
+
+        // Add options to select dropdown
+        sortedDates.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date;
+            option.textContent = date;
+            expirationSelect.appendChild(option);
+        });
+    }
+
+    /**
+     * Find the strike price closest to the target price
+     * @param {number} targetPrice - Target price to match
+     * @param {Array} options - Array of option contracts
+     * @returns {number} - Closest strike price
+     */
+    findClosestStrike(targetPrice, options) {
+        // Get unique strike prices
+        const strikes = [...new Set(options.map(opt => parseFloat(opt.strike_price)))];
+
+        if (strikes.length === 0) {
+            return targetPrice; // Return target price as fallback
+        }
+
+        // Find the closest strike
+        let closestStrike = strikes[0];
+        let minDiff = Math.abs(strikes[0] - targetPrice);
+
+        strikes.forEach(strike => {
+            const diff = Math.abs(strike - targetPrice);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestStrike = strike;
+            }
+        });
+
+        return closestStrike;
+    }
+
+    /**
+     * Format currency value
+     * @param {number} value - Value to format
+     * @returns {string} - Formatted currency string
+     */
+    formatCurrency(value) {
+        if (value === undefined || value === null) return 'N/A';
+        return '$' + parseFloat(value).toFixed(2);
+    }
+}
+
+// Use named export instead of default export
+export { OptionsStrategiesModule };

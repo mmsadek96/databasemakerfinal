@@ -7,11 +7,12 @@ import DashboardView from './dashboard.js';
 import StocksView from './stocks.js';
 import IndicatorsView from './indicators.js';
 import CorrelationView from './correlation.js';
-import OptionsView from './options.js';
+import { optionsView as OptionsView } from './options.js'; // Updated import using named export
 import TranscriptsView from './transcripts.js';
 import API from './api.js';
 import { debounce } from './utils.js';
 
+window.FinancialHub = window.FinancialHub || {};
 /**
  * Main application controller
  */

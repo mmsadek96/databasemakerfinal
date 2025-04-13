@@ -38,9 +38,6 @@
     </div>
 </div>
 
-<!-- Options templates - These sections will be populated dynamically by JavaScript -->
-
-<!-- Options Analytics Section -->
 <template id="options-analytics-template">
     <div id="options-analytics" class="card mb-4 d-none">
         <div class="card-header bg-dark text-white">
@@ -193,7 +190,6 @@
     </div>
 </template>
 
-<!-- Advanced Analysis Section -->
 <template id="advanced-analysis-template">
     <div id="advanced-analysis" class="d-none">
         <div class="row mb-4">
@@ -261,163 +257,83 @@
                                 </div>
                             </div>
 
-                            <!-- Strategy Builder Tab - Updated version -->
-<div class="tab-pane fade" id="strategy" role="tabpanel">
-    <div class="row mb-3">
-        <!-- Add a new date selection section at the top -->
-        <div class="col-12 mb-3">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">Expiration Date Selection</h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Please select an expiration date before building a strategy.
-                    </div>
-                    <div class="row">
-                        <div class="col-md-8">
-                            <select id="strategy-expiration-select" class="form-select">
-                                <option value="" selected disabled>Select an expiration date</option>
-                                <!-- Add some hard-coded options to test -->
-                                <option value="Apr 19, 2025">Apr 19, 2025</option>
-                                <option value="May 17, 2025">May 17, 2025</option>
-                                <option value="Jun 21, 2025">Jun 21, 2025</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <button id="refresh-expiration-dates" class="btn btn-outline-secondary w-100">
-                                <i class="bi bi-arrow-repeat"></i> Refresh Dates
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                            <!-- Strategy Builder Tab -->
+                            <div class="tab-pane fade" id="strategy" role="tabpanel">
+                                <div class="row mb-3">
+                                    <!-- Expiration Date Selection -->
+                                    <div class="col-12 mb-3">
+                                        <div class="card">
+                                            <div class="card-header bg-info text-white">
+                                                <h6 class="mb-0">Expiration Date Selection</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="alert alert-info">
+                                                    <i class="bi bi-info-circle me-2"></i>
+                                                    Please select an expiration date before building a strategy.
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <select id="strategy-expiration-date" class="form-select">
+                                                            <option value="" selected disabled>Select an expiration date</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <button id="refresh-expiration-dates" class="btn btn-outline-secondary w-100">
+                                                            <i class="bi bi-arrow-repeat"></i> Refresh Dates
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0">Strategy Templates</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-outline-primary" id="strategy-long-call">
-                            <i class="bi bi-graph-up"></i> Long Call
-                        </button>
-                        <button class="btn btn-outline-primary" id="strategy-long-put">
-                            <i class="bi bi-graph-down"></i> Long Put
-                        </button>
-                        <button class="btn btn-outline-primary" id="strategy-bull-spread">
-                            <i class="bi bi-arrow-up-right"></i> Bull Call Spread
-                        </button>
-                        <button class="btn btn-outline-primary" id="strategy-bear-spread">
-                            <i class="bi bi-arrow-down-right"></i> Bear Put Spread
-                        </button>
-                        <button class="btn btn-outline-primary" id="strategy-butterfly">
-                            <i class="bi bi-diamond"></i> Butterfly Spread
-                        </button>
-                        <button class="btn btn-outline-primary" id="strategy-iron-condor">
-                            <i class="bi bi-distribute-horizontal"></i> Iron Condor
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h6 class="mb-0">Strategy Results</h6>
-                </div>
-                <div class="card-body">
-                    <div id="strategy-builder-result">
-                        <p class="text-muted text-center">
-                            Select an expiration date and then a strategy template to build and analyze an options strategy.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                                    <!-- Strategy Selection -->
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-primary text-white">
+                                                <h6 class="mb-0">Strategy Templates</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-grid gap-2">
+                                                    <button class="btn btn-outline-primary" id="strategy-long-call">
+                                                        <i class="bi bi-graph-up"></i> Long Call
+                                                    </button>
+                                                    <button class="btn btn-outline-primary" id="strategy-long-put">
+                                                        <i class="bi bi-graph-down"></i> Long Put
+                                                    </button>
+                                                    <button class="btn btn-outline-primary" id="strategy-bull-spread">
+                                                        <i class="bi bi-arrow-up-right"></i> Bull Call Spread
+                                                    </button>
+                                                    <button class="btn btn-outline-primary" id="strategy-bear-spread">
+                                                        <i class="bi bi-arrow-down-right"></i> Bear Put Spread
+                                                    </button>
+                                                    <button class="btn btn-outline-primary" id="strategy-butterfly">
+                                                        <i class="bi bi-diamond"></i> Butterfly Spread
+                                                    </button>
+                                                    <button class="btn btn-outline-primary" id="strategy-iron-condor">
+                                                        <i class="bi bi-distribute-horizontal"></i> Iron Condor
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-<!-- Add this script tag at the end of the file -->
-<script>
-    // This script will run when the page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add a direct event listener to refresh button
-        const refreshButton = document.getElementById('refresh-expiration-dates');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', function() {
-                console.log("Refresh button clicked");
-                // Manually populate expiration dates from current options data
-                const optionsView = window.OptionsView;
-                if (optionsView && optionsView.currentOptionsData) {
-                    const expirationSelect = document.getElementById('strategy-expiration-select');
-                    if (!expirationSelect) return;
-
-                    // Clear existing options
-                    expirationSelect.innerHTML = '<option value="" selected disabled>Select an expiration date</option>';
-
-                    // Get unique expiration dates
-                    const expirationDates = new Set();
-                    optionsView.currentOptionsData.forEach(option => {
-                        if (option.expiration_date) {
-                            const formattedDate = optionsView.formatDate(option.expiration_date);
-                            expirationDates.add(formattedDate);
-                            console.log("Added expiration date:", formattedDate);
-                        }
-                    });
-
-                    // Add options to select
-                    Array.from(expirationDates).sort().forEach(date => {
-                        const option = document.createElement('option');
-                        option.value = date;
-                        option.textContent = date;
-                        expirationSelect.appendChild(option);
-                    });
-
-                    console.log("Updated expiration dates dropdown with", expirationDates.size, "dates");
-                }
-            });
-        }
-
-        // Add direct event listeners to strategy buttons
-        const strategyButtons = [
-            'strategy-long-call',
-            'strategy-long-put',
-            'strategy-bull-spread',
-            'strategy-bear-spread',
-            'strategy-butterfly',
-            'strategy-iron-condor'
-        ];
-
-        strategyButtons.forEach(buttonId => {
-            const button = document.getElementById(buttonId);
-            if (button) {
-                button.addEventListener('click', function() {
-                    console.log(buttonId, "clicked directly");
-                    const strategyType = buttonId.replace('strategy-', '');
-
-                    // Check if we have a selected expiration date
-                    const expirationSelect = document.getElementById('strategy-expiration-select');
-                    if (!expirationSelect || !expirationSelect.value) {
-                        alert("Please select an expiration date first");
-                        return;
-                    }
-
-                    // Call the strategy builder function
-                    const optionsStrategies = window.OptionsStrategies;
-                    if (optionsStrategies) {
-                        optionsStrategies.buildStrategy(strategyType);
-                    } else {
-                        console.error("OptionsStrategies not found in window object");
-                    }
-                });
-            }
-        });
-    });
-</script>
+                                    <!-- Strategy Results -->
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-success text-white">
+                                                <h6 class="mb-0">Strategy Results</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="strategy-builder-result">
+                                                    <p class="text-muted text-center">
+                                                        Select an expiration date and then a strategy template to build and analyze an options strategy.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -427,7 +343,6 @@
     </div>
 </template>
 
-<!-- Options Filtering Controls -->
 <template id="options-filters-template">
     <div class="card mb-4">
         <div class="card-header bg-light">
@@ -463,7 +378,6 @@
     </div>
 </template>
 
-<!-- Option Details Modal Template -->
 <template id="option-details-modal-template">
     <div class="modal fade" id="optionDetailsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -593,4 +507,3 @@
         </div>
     </div>
 </template>
-

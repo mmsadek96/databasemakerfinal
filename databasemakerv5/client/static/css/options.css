@@ -157,3 +157,56 @@
         margin-bottom: 1rem;
     }
 }
+
+/* Options Table Styling */
+.options-table {
+    font-size: 0.875rem;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.options-table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    vertical-align: middle;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.options-table td {
+    padding: 0.25rem 0.5rem;
+    vertical-align: middle;
+}
+
+/* Call and put styling */
+.call-cell {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.put-cell {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Strike column styling */
+.strike-price {
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+/* Metric styling */
+.metric-group h6 {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    color: #495057;
+}
