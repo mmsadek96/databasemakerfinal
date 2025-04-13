@@ -34,16 +34,37 @@ const OptionsView = {
     initialize: function() {
         // Set up event listeners
         this.setupEventListeners();
+        this.optionsView = optionsView;
 
         // Initialize sub-modules
         OptionsAnalytics.initialize(this);
         OptionsStrategies.initialize(this);
+        document.addEventListener('click', e => {
+        if (e.target.id === 'strategy-long-call') {
+            this.buildStrategy('long-call');
+        } else if (e.target.id === 'strategy-long-put') {
+            this.buildStrategy('long-put');
+        } else if (e.target.id === 'strategy-bull-spread') {
+            this.buildStrategy('bull-spread');
+        } else if (e.target.id === 'strategy-bear-spread') {
+            this.buildStrategy('bear-spread');
+        } else if (e.target.id === 'strategy-iron-condor') {
+            this.buildStrategy('iron-condor');
+        } else if (e.target.id === 'strategy-butterfly') {
+            this.buildStrategy('butterfly');
+        } else if (e.target.id === 'export-strategy') {
+            this.exportStrategy();
+        } else if (e.target.id === 'clear-strategy') {
+            this.clearStrategy();
+        }
+         });
     },
+
+
 
     /**
      * Set up event listeners
      */
-    // Fix for the toggle button in options.js - Update setupEventListeners method
     setupEventListeners: function() {
         // Load options data button
         document.getElementById('load-options-button').addEventListener('click', () => {
@@ -63,7 +84,7 @@ const OptionsView = {
             }
         });
 
-        // Improved toggle button event handling - more direct and with debugging
+        // Improved toggle button handling - use global event delegation
         document.addEventListener('click', (e) => {
             if (e.target && e.target.id === 'toggle-advanced') {
                 console.log("Toggle advanced button clicked");
@@ -200,7 +221,7 @@ const OptionsView = {
                     }
 
                     // Calculate historical volatility
-                    const historicalVolatility = OptionsAnalytics.calculateHistoricalVolatility(data);
+                    const historicalVolatility = this.calculateHistoricalVolatility(data);
                     const histVolElement = document.getElementById('historical-volatility');
                     if (histVolElement) {
                         histVolElement.textContent = (historicalVolatility * 100).toFixed(2) + '%';
@@ -272,6 +293,9 @@ const OptionsView = {
     /**
      * Initialize UI components from templates
      */
+    /**
+ * Initialize UI components from templates
+ */
     initializeUIComponents: function() {
         // Add the options analytics section template
         const analyticsTemplate = document.getElementById('options-analytics-template');
@@ -300,6 +324,19 @@ const OptionsView = {
             }
         }
 
+        // Update strategy expiration dates if we have data
+        if (this.currentOptionsData && this.currentOptionsData.length > 0) {
+            this.updateStrategyExpirationDates();
+        }
+
+        // Set up refresh button for expiration dates
+        const refreshButton = document.getElementById('refresh-expiration-dates');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', () => {
+                this.updateStrategyExpirationDates();
+            });
+        }
+
         // Set up filtering event listeners
         document.addEventListener('change', (e) => {
             if (e.target.id === 'filter-moneyness' || e.target.id === 'filter-min-volume') {
@@ -311,7 +348,6 @@ const OptionsView = {
     /**
      * Apply filters to the options display
      */
-    // Add this to the OptionsView object in options.js
     applyFilters: function() {
         console.log("Applying options filters");
 
@@ -404,134 +440,151 @@ const OptionsView = {
      * @param {string} symbol - Stock symbol
      * @param {boolean} includeGreeks - Whether Greeks are included
      */
-    displayOptionsData: function(optionsData, symbol, includeGreeks) {
-        // Group options by expiration date
-        const optionsByExpiration = {};
+    /**
+ * Update the displayOptionsData method to automatically select the first expiration date tab
+ */
+    /**
+ * Display options data in tables
+ * @param {Array} optionsData - Options data
+ * @param {string} symbol - Stock symbol
+ * @param {boolean} includeGreeks - Whether Greeks are included
+ */
+displayOptionsData: function(optionsData, symbol, includeGreeks) {
+    // Store the data for further analysis
+    this.currentOptionsData = optionsData;
 
-        optionsData.forEach(option => {
-            const expDate = option.expiration_date;
-            if (!optionsByExpiration[expDate]) {
-                optionsByExpiration[expDate] = [];
-            }
-            optionsByExpiration[expDate].push(option);
-        });
+    console.log(`Displaying options data for ${symbol}:`, optionsData.length, "contracts");
 
-        // Sort expiration dates
-        const expirationDates = Object.keys(optionsByExpiration).sort();
+    // Group options by expiration date
+    const optionsByExpiration = {};
 
-        // Create tabs for each expiration date
-        const tabsUl = document.getElementById('options-tabs');
-        tabsUl.innerHTML = `
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-options" type="button" role="tab">All Expirations</button>
-            </li>
-        `;
-
-        // Create tab content container if it doesn't exist
-        let tabsContent = document.getElementById('options-tabs-content');
-        if (!tabsContent) {
-            console.error('options-tabs-content element not found');
-            return;
+    optionsData.forEach(option => {
+        const expDate = option.expiration_date;
+        if (!optionsByExpiration[expDate]) {
+            optionsByExpiration[expDate] = [];
         }
+        optionsByExpiration[expDate].push(option);
+    });
 
-        // Clear existing content
-        tabsContent.innerHTML = '';
+    // Sort expiration dates
+    const expirationDates = Object.keys(optionsByExpiration).sort();
+    console.log("Found expiration dates:", expirationDates);
 
-        let allOptionsHtml = `
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>${symbol} Options</h4>
-                <div class="d-flex">
-                    <div id="stock-price-container" class="me-3 d-none">
-                        <span class="fw-bold">Current Price:</span>
-                        <span id="current-stock-price" class="text-primary fw-bold">$0.00</span>
-                    </div>
-                    <button class="btn btn-primary" id="toggle-advanced">Show Advanced Analysis</button>
+    // Create tabs for each expiration date
+    const tabsUl = document.getElementById('options-tabs');
+    tabsUl.innerHTML = `
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-options" type="button" role="tab">All Expirations</button>
+        </li>
+    `;
+
+    // Create tab content container if it doesn't exist
+    let tabsContent = document.getElementById('options-tabs-content');
+    if (!tabsContent) {
+        console.error('options-tabs-content element not found');
+        return;
+    }
+
+    // Clear existing content
+    tabsContent.innerHTML = '';
+
+    let allOptionsHtml = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>${symbol} Options</h4>
+            <div class="d-flex">
+                <div id="stock-price-container" class="me-3 d-none">
+                    <span class="fw-bold">Current Price:</span>
+                    <span id="current-stock-price" class="text-primary fw-bold">$0.00</span>
                 </div>
+                <button class="btn btn-primary" id="toggle-advanced">Show Advanced Analysis</button>
+            </div>
+        </div>
+    `;
+
+    // Create all-options tab pane
+    const allOptionsPane = document.createElement('div');
+    allOptionsPane.className = 'tab-pane fade show active';
+    allOptionsPane.id = 'all-options';
+    allOptionsPane.role = 'tabpanel';
+    allOptionsPane.innerHTML = allOptionsHtml;
+    tabsContent.appendChild(allOptionsPane);
+
+    // Re-initialize UI components
+    this.initializeUIComponents();
+
+    // Generate tabs and content for each expiration date
+    expirationDates.forEach((expDate, index) => {
+        const options = optionsByExpiration[expDate];
+        const tabId = `exp-${expDate.replace(/[\/\s]/g, '-')}`;
+        const formattedDate = this.formatDate(expDate);
+
+        // Add tab
+        const tabLi = document.createElement('li');
+        tabLi.className = 'nav-item';
+        tabLi.role = 'presentation';
+        tabLi.innerHTML = `
+            <button class="nav-link" id="${tabId}-tab" data-bs-toggle="tab" data-bs-target="#${tabId}" type="button" role="tab">
+                ${formattedDate}
+            </button>
+        `;
+        tabsUl.appendChild(tabLi);
+
+        // Create options table for this expiration
+        const optionsTable = this.createEnhancedOptionsTable(options, includeGreeks, symbol);
+
+        // Add tab content
+        const tabPane = document.createElement('div');
+        tabPane.className = 'tab-pane fade';
+        tabPane.id = tabId;
+        tabPane.role = 'tabpanel';
+
+        const tabContent = document.createElement('div');
+        tabContent.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>${symbol} Options - Expiration: ${formattedDate}</h4>
+                <div id="expiry-countdown" class="badge bg-dark"></div>
             </div>
         `;
+        tabContent.appendChild(optionsTable);
 
-        // Create all-options tab pane
-        const allOptionsPane = document.createElement('div');
-        allOptionsPane.className = 'tab-pane fade show active';
-        allOptionsPane.id = 'all-options';
-        allOptionsPane.role = 'tabpanel';
-        allOptionsPane.innerHTML = allOptionsHtml;
-        tabsContent.appendChild(allOptionsPane);
+        tabPane.appendChild(tabContent);
+        tabsContent.appendChild(tabPane);
 
-        // Re-initialize UI components
-        this.initializeUIComponents();
-
-        // Generate tabs and content for each expiration date
-        expirationDates.forEach((expDate, index) => {
-            const options = optionsByExpiration[expDate];
-            const tabId = `exp-${expDate.replace(/[\/\s]/g, '-')}`;
-            const formattedDate = this.formatDate(expDate);
-
-            // Add tab
-            const tabLi = document.createElement('li');
-            tabLi.className = 'nav-item';
-            tabLi.role = 'presentation';
-            tabLi.innerHTML = `
-                <button class="nav-link" id="${tabId}-tab" data-bs-toggle="tab" data-bs-target="#${tabId}" type="button" role="tab">
-                    ${formattedDate}
-                </button>
+        // Add to all options view (limited to first 3 expirations)
+        if (index < 3) {
+            const allOptionsSection = document.createElement('div');
+            allOptionsSection.innerHTML = `
+                <h5 class="mt-4 bg-light p-2 rounded">Expiration: ${formattedDate}</h5>
             `;
-            tabsUl.appendChild(tabLi);
-
-            // Create options table for this expiration
-            const optionsTable = this.createEnhancedOptionsTable(options, includeGreeks, symbol);
-
-            // Add tab content
-            const tabPane = document.createElement('div');
-            tabPane.className = 'tab-pane fade';
-            tabPane.id = tabId;
-            tabPane.role = 'tabpanel';
-
-            const tabContent = document.createElement('div');
-            tabContent.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4>${symbol} Options - Expiration: ${formattedDate}</h4>
-                    <div id="expiry-countdown" class="badge bg-dark"></div>
-                </div>
-            `;
-            tabContent.appendChild(optionsTable);
-
-            tabPane.appendChild(tabContent);
-            tabsContent.appendChild(tabPane);
-
-            // Add to all options view (limited to first 3 expirations)
-            if (index < 3) {
-                const allOptionsSection = document.createElement('div');
-                allOptionsSection.innerHTML = `
-                    <h5 class="mt-4 bg-light p-2 rounded">Expiration: ${formattedDate}</h5>
-                `;
-                allOptionsSection.appendChild(optionsTable.cloneNode(true));
-                allOptionsPane.appendChild(allOptionsSection);
-            }
-        });
-
-        // If there are more than 3 expirations, add a note
-        if (expirationDates.length > 3) {
-            const noteDiv = document.createElement('div');
-            noteDiv.className = 'alert alert-info mt-3';
-            noteDiv.innerHTML = `
-                <i class="bi bi-info-circle"></i> 
-                Showing options for the first 3 expiration dates. 
-                Use the tabs above to view all available expiration dates.
-            `;
-            allOptionsPane.appendChild(noteDiv);
+            allOptionsSection.appendChild(optionsTable.cloneNode(true));
+            allOptionsPane.appendChild(allOptionsSection);
         }
+    });
 
-        // Initialize tabs
-        this.initializeOptionsTabs();
+    // If there are more than 3 expirations, add a note
+    if (expirationDates.length > 3) {
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'alert alert-info mt-3';
+        noteDiv.innerHTML = `
+            <i class="bi bi-info-circle"></i> 
+            Showing options for the first 3 expiration dates. 
+            Use the tabs above to view all available expiration dates.
+        `;
+        allOptionsPane.appendChild(noteDiv);
+    }
 
-        // Apply highlight to ATM options if the stock price is available
-        if (this.stockData) {
-            const currentPrice = this.stockData[this.stockData.length - 1].close;
-            this.highlightAtTheMoney(currentPrice);
-        }
-    },
+    // Initialize tabs
+    this.initializeOptionsTabs();
 
+    // Update strategy expiration dates dropdown
+    this.updateStrategyExpirationDates();
+
+    // Apply highlight to ATM options if the stock price is available
+    if (this.stockData) {
+        const currentPrice = this.stockData[this.stockData.length - 1].close;
+        this.highlightAtTheMoney(currentPrice);
+    }
+},
     /**
      * Initialize options tabs
      */
@@ -832,7 +885,6 @@ const OptionsView = {
      * Show detailed information about an option contract
      * @param {Object} option - Option data
      */
-    // Update the showOptionDetails method in options.js
     showOptionDetails: function(option) {
         console.log("Showing option details:", option);
 
@@ -861,16 +913,6 @@ const OptionsView = {
         if (modalTitle) {
             modalTitle.textContent = `${option.contract_name || option.contract_type.toUpperCase() + ' ' + option.strike_price}`;
         }
-
-        // Format currency
-        const formatCurrency = (value) => {
-            return '$' + parseFloat(value).toFixed(2);
-        };
-
-        // Format number
-        const formatNumber = (value) => {
-            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        };
 
         // Helper to update an element's text
         const updateElementText = (id, text) => {
@@ -914,23 +956,55 @@ const OptionsView = {
         modal.show();
 
         // Add event listeners for action buttons
-        document.getElementById('option-analyze-btn')?.addEventListener('click', () => {
-            if (this.optionsStrategies) {
-                this.optionsStrategies.analyzeOptionProfitLoss(option);
-                modal.hide();
-            } else {
-                console.error("Options strategies module not initialized");
-            }
-        });
+        const analyzeBtn = document.getElementById('option-analyze-btn');
+        if (analyzeBtn) {
+            analyzeBtn.addEventListener('click', () => {
+                if (OptionsStrategies) {
+                    OptionsStrategies.analyzeOptionProfitLoss(option);
+                    modal.hide();
+                } else {
+                    console.error("Options strategies module not initialized");
+                }
+            });
+        }
 
-        document.getElementById('option-add-strategy-btn')?.addEventListener('click', () => {
-            if (this.optionsStrategies) {
-                this.optionsStrategies.addToCustomStrategy(option);
-                modal.hide();
-            } else {
-                console.error("Options strategies module not initialized");
-            }
-        });
+        const addStrategyBtn = document.getElementById('option-add-strategy-btn');
+        if (addStrategyBtn) {
+            addStrategyBtn.addEventListener('click', () => {
+                if (OptionsStrategies) {
+                    OptionsStrategies.addToCustomStrategy(option);
+                    modal.hide();
+                } else {
+                    console.error("Options strategies module not initialized");
+                }
+            });
+        }
+    },
+
+    /**
+     * Calculate historical volatility from stock data
+     * @param {Array} stockData - Array of stock price data
+     * @returns {number} - Annualized historical volatility
+     */
+    calculateHistoricalVolatility: function(stockData) {
+        if (!stockData || stockData.length < 2) return 0;
+
+        // Calculate daily returns
+        const returns = [];
+        for (let i = 1; i < stockData.length; i++) {
+            const previousClose = stockData[i-1].close;
+            const currentClose = stockData[i].close;
+            returns.push(Math.log(currentClose / previousClose));
+        }
+
+        // Calculate standard deviation of returns
+        const mean = returns.reduce((sum, value) => sum + value, 0) / returns.length;
+        const squaredDiffs = returns.map(value => Math.pow(value - mean, 2));
+        const variance = squaredDiffs.reduce((sum, value) => sum + value, 0) / squaredDiffs.length;
+        const stdDev = Math.sqrt(variance);
+
+        // Annualize (assuming ~252 trading days in a year)
+        return stdDev * Math.sqrt(252);
     },
 
     /**
@@ -941,7 +1015,11 @@ const OptionsView = {
      */
     findClosestStrike: function(currentPrice, options) {
         // Get unique strike prices
-        const strikes = [...new Set(options.map(opt => opt.strike_price))];
+        const strikes = [...new Set(options.map(opt => parseFloat(opt.strike_price)))];
+
+        if (strikes.length === 0) {
+            return currentPrice; // Return current price as fallback
+        }
 
         // Find the closest strike
         let closestStrike = strikes[0];
@@ -957,6 +1035,114 @@ const OptionsView = {
 
         return closestStrike;
     },
+
+        /**
+     * Update the expiration date dropdown in the strategy builder
+     * This function populates the dropdown with all available expiration dates
+     */
+    updateStrategyExpirationDates: function() {
+        console.log("Updating strategy expiration dates");
+
+        // Get the select element
+        const expirationSelect = document.getElementById('strategy-expiration-date');
+        if (!expirationSelect) {
+            console.error("Expiration date select element not found");
+            return;
+        }
+
+        // Clear existing options
+        expirationSelect.innerHTML = '<option value="" selected disabled>Select an expiration date</option>';
+
+        // Only proceed if we have options data
+        if (!this.currentOptionsData || this.currentOptionsData.length === 0) {
+            console.warn("No options data available to populate expiration dates");
+            return;
+        }
+
+        console.log("Processing options data to find expiration dates");
+
+        // Extract unique expiration dates
+        const expirationDates = new Set();
+        this.currentOptionsData.forEach(option => {
+            if (option.expiration_date) {
+                const formattedDate = this.formatDate(option.expiration_date);
+                expirationDates.add(formattedDate);
+                console.log(`Added expiration date: ${formattedDate}`);
+            }
+        });
+
+        // Sort dates
+        const sortedDates = Array.from(expirationDates).sort();
+        console.log(`Found ${sortedDates.length} unique expiration dates`);
+
+        // Add options to select dropdown
+        sortedDates.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date;
+            option.textContent = date;
+            expirationSelect.appendChild(option);
+        });
+
+        console.log("Expiration dates dropdown updated");
+    },
+
+    buildStrategy: function(strategyType) {
+    if (!this.optionsView.currentOptionsData || !this.optionsView.stockData) {
+        App.showNotification('Please load options data first', 'warning');
+        return;
+    }
+
+    const currentPrice = this.optionsView.stockData[this.optionsView.stockData.length - 1].close;
+
+    // Get the selected expiration date from the dropdown
+    const expirationSelect = document.getElementById('strategy-expiration-date');
+    if (!expirationSelect || !expirationSelect.value) {
+        App.showNotification('Please select an expiration date', 'warning');
+        return;
+    }
+
+    const selectedExpDate = expirationSelect.value;
+
+    // Filter options for the selected expiration
+    const expirationOptions = this.optionsView.currentOptionsData.filter(opt =>
+        this.optionsView.formatDate(opt.expiration_date) === selectedExpDate
+    );
+
+    if (expirationOptions.length === 0) {
+        App.showNotification('No options found for the selected expiration date', 'warning');
+        return;
+    }
+
+    // Strategies implementation
+    let strategy = { type: strategyType, legs: [], cost: 0, maxProfit: 0, maxLoss: 0 };
+
+    switch (strategyType) {
+        case 'long-call':
+            strategy = this.buildLongCallStrategy(expirationOptions, currentPrice);
+            break;
+        case 'long-put':
+            strategy = this.buildLongPutStrategy(expirationOptions, currentPrice);
+            break;
+        case 'bull-spread':
+            strategy = this.buildBullSpreadStrategy(expirationOptions, currentPrice);
+            break;
+        case 'bear-spread':
+            strategy = this.buildBearSpreadStrategy(expirationOptions, currentPrice);
+            break;
+        case 'iron-condor':
+            strategy = this.buildIronCondorStrategy(expirationOptions, currentPrice);
+            break;
+        case 'butterfly':
+            strategy = this.buildButterflyStrategy(expirationOptions, currentPrice);
+            break;
+    }
+
+    // Add expiration date to strategy for reference
+    strategy.expirationDate = selectedExpDate;
+
+    // Display the strategy
+    this.displayStrategy(strategy);
+},
 
     /**
      * Format date string

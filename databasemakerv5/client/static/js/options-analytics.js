@@ -3,6 +3,8 @@
  * @module options-analytics
  */
 
+// This is an updated version of options-analytics.js with fixed DOM element handling
+
 import { formatCurrency, formatNumber } from './utils.js';
 
 /**
@@ -27,8 +29,6 @@ const OptionsAnalytics = {
      */
     initialize: function(optionsView) {
         this.optionsView = optionsView;
-
-        // Add console logging to help with debugging
         console.log("OptionsAnalytics initialized with optionsView:", optionsView ? "provided" : "missing");
     },
 
@@ -204,32 +204,6 @@ const OptionsAnalytics = {
     },
 
     /**
-     * Calculate historical volatility from stock data
-     * @param {Array} stockData - Array of stock price data
-     * @returns {number} - Annualized historical volatility
-     */
-    calculateHistoricalVolatility: function(stockData) {
-        if (!stockData || stockData.length < 2) return 0;
-
-        // Calculate daily returns
-        const returns = [];
-        for (let i = 1; i < stockData.length; i++) {
-            const previousClose = stockData[i-1].close;
-            const currentClose = stockData[i].close;
-            returns.push(Math.log(currentClose / previousClose));
-        }
-
-        // Calculate standard deviation of returns
-        const mean = returns.reduce((sum, value) => sum + value, 0) / returns.length;
-        const squaredDiffs = returns.map(value => Math.pow(value - mean, 2));
-        const variance = squaredDiffs.reduce((sum, value) => sum + value, 0) / squaredDiffs.length;
-        const stdDev = Math.sqrt(variance);
-
-        // Annualize (assuming ~252 trading days in a year)
-        return stdDev * Math.sqrt(252);
-    },
-
-    /**
      * Update options analytics with advanced institutional metrics
      * @param {Array} data - Options data
      * @param {string} symbol - Stock symbol
@@ -394,6 +368,9 @@ const OptionsAnalytics = {
 
         // Update implied move calculation
         this.updateImpliedMoveAnalysis();
+
+        // Make sure to always create and initialize implied move container elements
+        this.ensureImpliedMoveElements();
     },
 
     /**
@@ -434,201 +411,187 @@ const OptionsAnalytics = {
     },
 
     /**
-     * Update the implied move analysis based on ATM options
+     * Ensure that all required DOM elements for implied move analysis exist
      */
-    updateImpliedMoveAnalysis: function() {
-    console.log("Updating implied move analysis");
-
-    // Make sure we have options data and stock data
-    if (!this.optionsView || !this.optionsView.stockData) {
-        console.error("Missing required data for implied move analysis");
-        return;
-    }
-
-    // At the beginning of updateImpliedMoveAnalysis
-    if (!this.ensureElementsExist()) {
-        console.error("Cannot update implied move - required elements missing");
-        return;
-    }
-
-    // Get current stock price
-    const stockData = this.optionsView.stockData;
-    if (!stockData || stockData.length === 0) {
-        console.error("Stock data is empty");
-        return;
-    }
-
-    const lastDataPoint = stockData[stockData.length - 1];
-    console.log("Last stock data point:", lastDataPoint);
-
-    const currentPrice = parseFloat(lastDataPoint.close);
-    console.log("Current stock price:", currentPrice);
-
-    if (isNaN(currentPrice) || currentPrice <= 0) {
-        console.error("Invalid current price:", currentPrice);
-        return;
-    }
-
-    // Check for options data
-    const options = this.optionsView.currentOptionsData;
-    if (!options || options.length === 0) {
-        console.error("No options data available");
-        return;
-    }
-
-    // Get the active tab directly from the DOM
-    const activeTab = document.querySelector('#options-tabs .nav-link.active');
-    if (!activeTab) {
-        console.error("No active tab found");
-        return;
-    }
-
-    const expDate = activeTab.textContent.trim();
-    console.log("Active expiration tab:", expDate);
-
-    if (expDate === 'All Expirations') {
-        console.warn("All Expirations tab is active - select a specific date");
-        this.safeUpdateElementText('implied-move', "Select date");
-        this.safeUpdateElementText('expected-range', "Select a specific expiration");
-        return;
-    }
-
-    // Force update current stock price display
-    this.safeUpdateElementText('current-stock-price-move', '$' + currentPrice.toFixed(2));
-
-    // Filter options for current expiration date
-    const formatDate = this.optionsView.formatDate || (d => d);  // Get format function or use identity
-
-    console.log("Looking for options with expiration matching:", expDate);
-    console.log("First few options:", options.slice(0, 3));
-
-    // Try different ways to match the expiration
-    const expirationOptions = options.filter(opt => {
-        // Convert option's expiration to the same format as displayed in tab
-        const formattedDate = formatDate(opt.expiration_date);
-        return formattedDate === expDate || opt.expiration_date === expDate;
-    });
-
-    console.log(`Found ${expirationOptions.length} options for expiration ${expDate}`);
-
-    if (expirationOptions.length === 0) {
-        console.error(`No options found for expiration: ${expDate}`);
-        return;
-    }
-
-    // Find ATM strike
-    console.log("Finding ATM strike for price:", currentPrice);
-    console.log("Available strikes:", expirationOptions.map(o => o.strike_price).slice(0, 10));
-
-    // Get unique strikes
-    const strikes = [...new Set(expirationOptions.map(o => parseFloat(o.strike_price)))].sort((a, b) => a - b);
-
-    if (strikes.length === 0) {
-        console.error("No valid strike prices found");
-        return;
-    }
-
-    // Find closest strike to current price
-    let closestStrike = strikes[0];
-    let minDiff = Math.abs(strikes[0] - currentPrice);
-
-    strikes.forEach(strike => {
-        const diff = Math.abs(strike - currentPrice);
-        if (diff < minDiff) {
-            minDiff = diff;
-            closestStrike = strike;
+    ensureImpliedMoveElements: function() {
+        // Get the container
+        const container = document.getElementById('implied-move-container');
+        if (!container) {
+            console.error("Implied move container not found");
+            return false;
         }
-    });
 
-    console.log(`Closest strike to ${currentPrice} is ${closestStrike}`);
+        // Make container visible if hidden
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+        }
 
-    // Find ATM options
-    const atmCall = expirationOptions.find(opt =>
-        opt.contract_type === 'call' && parseFloat(opt.strike_price) === closestStrike
-    );
+        // Check required elements
+        const requiredElements = [
+            'implied-move',
+            'expected-range',
+            'days-to-expiry',
+            'straddle-price',
+            'current-stock-price-move'
+        ];
 
-    const atmPut = expirationOptions.find(opt =>
-        opt.contract_type === 'put' && parseFloat(opt.strike_price) === closestStrike
-    );
+        // Create missing elements if needed
+        requiredElements.forEach(id => {
+            if (!document.getElementById(id)) {
+                console.log(`Creating missing element: ${id}`);
+                const element = document.createElement('span');
+                element.id = id;
+                element.className = 'fw-bold';
+                element.textContent = '0.00%';
 
-    console.log("ATM call:", atmCall ? "Found" : "Not found");
-    console.log("ATM put:", atmPut ? "Found" : "Not found");
+             // Find container by convention
+                const parentContainer = Array.from(container.querySelectorAll('.metric-group'))
+                .find(el => el.textContent.includes(id.replace(/-/g, ' ')))
+                || container.querySelector('.metric-group');
 
-    if (!atmCall || !atmPut) {
-        console.error("Could not find both ATM call and put options");
-        return;
-    }
+                if (parentContainer) {
+                    const existingParent = Array.from(container.querySelectorAll('.d-flex'))
+                        .find(el => el.innerHTML.includes(id.replace(/-/g, ' ')));
 
-    // Calculate days to expiry
-    const today = new Date();
-    const expiry = new Date(atmCall.expiration_date);
-    const daysToExpiry = Math.max(1, Math.round((expiry - today) / (1000 * 60 * 60 * 24)));
+                    if (existingParent) {
+                        existingParent.appendChild(element);
+                    } else {
+                        console.warn(`Could not find parent for ${id}, using default placement`);
+                        const firstMetricGroup = container.querySelector('.metric-group');
+                        if (firstMetricGroup) {
+                            firstMetricGroup.appendChild(element);
+                        }
+                    }
+                }
+            }
+        });
 
-    console.log(`Days to expiry: ${daysToExpiry}`);
-
-    // Calculate implied move
-    const callPrice = parseFloat(atmCall.last_price);
-    const putPrice = parseFloat(atmPut.last_price);
-
-    if (isNaN(callPrice) || isNaN(putPrice)) {
-        console.error("Invalid option prices", {callPrice, putPrice});
-        return;
-    }
-
-    const straddle = callPrice + putPrice;
-    const impliedMove = straddle / currentPrice;
-
-    console.log(`Straddle price: $${straddle.toFixed(2)}, Implied move: ${(impliedMove * 100).toFixed(2)}%`);
-
-    // Update display
-    this.safeUpdateElementText('implied-move', (impliedMove * 100).toFixed(2) + '%');
-    this.safeUpdateElementText('straddle-price', '$' + straddle.toFixed(2));
-    this.safeUpdateElementText('days-to-expiry', daysToExpiry);
-
-    const lowRange = currentPrice * (1 - impliedMove);
-    const highRange = currentPrice * (1 + impliedMove);
-    this.safeUpdateElementText('expected-range', `$${lowRange.toFixed(2)} - $${highRange.toFixed(2)}`);
-
-    // Historical volatility
-    const historicalVol = document.getElementById('historical-volatility');
-    const histVolValue = historicalVol ? historicalVol.textContent : '0.00%';
-    this.safeUpdateElementText('historical-vol', histVolValue);
-
-    // Make sure container is visible
-    const moveContainer = document.getElementById('implied-move-container');
-    if (moveContainer) {
-        moveContainer.classList.remove('d-none');
-    }
-
-        // Add at the end of updateImpliedMoveAnalysis
-    console.log("Current DOM values:");
-    console.log("implied-move:", document.getElementById('implied-move')?.textContent);
-    console.log("expected-range:", document.getElementById('expected-range')?.textContent);
-    console.log("days-to-expiry:", document.getElementById('days-to-expiry')?.textContent);
-    console.log("straddle-price:", document.getElementById('straddle-price')?.textContent);
-
-    return true;  // Successfully updated
-},
+        return true;
+    },
 
     /**
-     * Find the strike price closest to the current price
-     * @param {number} currentPrice - Current stock price
-     * @param {Array} options - Array of option contracts
-     * @returns {number} - Closest strike price
+     * Update the implied move analysis based on ATM options
      */
-    findClosestStrike: function(currentPrice, options) {
-        console.log(`Finding closest strike to ${currentPrice} among ${options.length} options`);
+    /**
+    * Update the implied move analysis based on ATM options
+    */
+    updateImpliedMoveAnalysis: function() {
+        console.log("Updating implied move analysis");
 
-        // Get unique strike prices
-        const strikes = [...new Set(options.map(opt => opt.strike_price))];
-        console.log("Available strikes:", strikes);
-
-        if (!strikes.length) {
-            console.error("No strike prices found");
-            return currentPrice; // Return current price as fallback
+        // Make sure we have options data and stock data
+        if (!this.optionsView || !this.optionsView.stockData) {
+            console.error("Missing required data for implied move analysis");
+            return;
         }
 
-        // Find the closest strike
+        // First ensure all required elements exist
+        this.ensureImpliedMoveElements();
+
+        // Get current stock price
+        const stockData = this.optionsView.stockData;
+        if (!stockData || stockData.length === 0) {
+            console.error("Stock data is empty");
+            return;
+        }
+
+        const lastDataPoint = stockData[stockData.length - 1];
+        console.log("Last stock data point:", lastDataPoint);
+
+        const currentPrice = parseFloat(lastDataPoint.close);
+        console.log("Current stock price:", currentPrice);
+
+        if (isNaN(currentPrice) || currentPrice <= 0) {
+            console.error("Invalid current price:", currentPrice);
+            return;
+        }
+
+        // Check for options data
+        const options = this.optionsView.currentOptionsData;
+        if (!options || options.length === 0) {
+            console.error("No options data available");
+            return;
+        }
+
+        // Get the active tab directly from the DOM
+        const activeTab = document.querySelector('#options-tabs .nav-link.active');
+        if (!activeTab) {
+            console.error("No active tab found");
+            return;
+        }
+
+        const expDate = activeTab.textContent.trim();
+        console.log("Active expiration tab:", expDate);
+
+        // Force update current stock price display
+        this.safeUpdateElementText('current-stock-price-move', '$' + currentPrice.toFixed(2));
+
+        if (expDate === 'All Expirations') {
+            console.warn("All Expirations tab is active - provide instructions");
+
+            // Find the first available expiration tab
+            const firstExpTab = document.querySelector('#options-tabs .nav-link:not(.active)');
+            let message = "Select a specific expiration";
+
+            if (firstExpTab) {
+                const tabText = firstExpTab.textContent.trim();
+                message = `Select "${tabText}" or another date tab to see implied move`;
+
+                // Highlight the first expiration tab temporarily
+                firstExpTab.classList.add('btn-outline-primary');
+                setTimeout(() => {
+                    firstExpTab.classList.remove('btn-outline-primary');
+                }, 2000);
+            }
+
+            this.safeUpdateElementText('implied-move', "Select date");
+            this.safeUpdateElementText('expected-range', message);
+
+            // Update the info alert box to provide clearer instructions
+            const infoAlert = document.querySelector('#implied-move-container .alert');
+            if (infoAlert) {
+                infoAlert.innerHTML = `
+                    <i class="bi bi-info-circle"></i>
+                    Please select a specific expiration date tab above to see the implied move analysis.
+                    The implied move shows the market's expectation of price movement before expiration.
+                `;
+            }
+
+            return;
+        }
+
+        // Filter options for current expiration date
+        const formatDate = this.optionsView.formatDate || (d => d);  // Get format function or use identity
+
+        console.log("Looking for options with expiration matching:", expDate);
+        console.log("First few options:", options.slice(0, 3));
+
+        // Try different ways to match the expiration
+        const expirationOptions = options.filter(opt => {
+            // Convert option's expiration to the same format as displayed in tab
+            const formattedDate = formatDate(opt.expiration_date);
+            return formattedDate === expDate || opt.expiration_date === expDate;
+        });
+
+        console.log(`Found ${expirationOptions.length} options for expiration ${expDate}`);
+
+        if (expirationOptions.length === 0) {
+            console.error(`No options found for expiration: ${expDate}`);
+            return;
+        }
+
+        // Find ATM strike
+        console.log("Finding ATM strike for price:", currentPrice);
+        console.log("Available strikes:", expirationOptions.map(o => o.strike_price).slice(0, 10));
+
+        // Get unique strikes
+        const strikes = [...new Set(expirationOptions.map(o => parseFloat(o.strike_price)))].sort((a, b) => a - b);
+
+        if (strikes.length === 0) {
+            console.error("No valid strike prices found");
+            return;
+        }
+
+        // Find closest strike to current price
         let closestStrike = strikes[0];
         let minDiff = Math.abs(strikes[0] - currentPrice);
 
@@ -640,8 +603,84 @@ const OptionsAnalytics = {
             }
         });
 
-        console.log(`Closest strike to ${currentPrice} is ${closestStrike} (diff: ${minDiff})`);
-        return closestStrike;
+        console.log(`Closest strike to ${currentPrice} is ${closestStrike}`);
+
+        // Find ATM options
+        const atmCall = expirationOptions.find(opt =>
+            opt.contract_type === 'call' && parseFloat(opt.strike_price) === closestStrike
+        );
+
+        const atmPut = expirationOptions.find(opt =>
+            opt.contract_type === 'put' && parseFloat(opt.strike_price) === closestStrike
+        );
+
+        console.log("ATM call:", atmCall ? "Found" : "Not found");
+        console.log("ATM put:", atmPut ? "Found" : "Not found");
+
+        if (!atmCall || !atmPut) {
+            console.error("Could not find both ATM call and put options");
+            return;
+        }
+
+        // Calculate days to expiry
+        const today = new Date();
+        const expiry = new Date(atmCall.expiration_date);
+        const daysToExpiry = Math.max(1, Math.round((expiry - today) / (1000 * 60 * 60 * 24)));
+
+        console.log(`Days to expiry: ${daysToExpiry}`);
+
+        // Calculate implied move
+        const callPrice = parseFloat(atmCall.last_price);
+        const putPrice = parseFloat(atmPut.last_price);
+
+        if (isNaN(callPrice) || isNaN(putPrice)) {
+            console.error("Invalid option prices", {callPrice, putPrice});
+            return;
+        }
+
+        const straddle = callPrice + putPrice;
+        const impliedMove = straddle / currentPrice;
+
+        console.log(`Straddle price: $${straddle.toFixed(2)}, Implied move: ${(impliedMove * 100).toFixed(2)}%`);
+
+        // Update display
+        this.safeUpdateElementText('implied-move', (impliedMove * 100).toFixed(2) + '%');
+        this.safeUpdateElementText('straddle-price', '$' + straddle.toFixed(2));
+        this.safeUpdateElementText('days-to-expiry', daysToExpiry);
+
+        const lowRange = currentPrice * (1 - impliedMove);
+        const highRange = currentPrice * (1 + impliedMove);
+        this.safeUpdateElementText('expected-range', `$${lowRange.toFixed(2)} - $${highRange.toFixed(2)}`);
+
+        // Historical volatility
+        const historicalVol = document.getElementById('historical-volatility');
+        const histVolValue = historicalVol ? historicalVol.textContent : '0.00%';
+        this.safeUpdateElementText('historical-vol', histVolValue);
+
+        // Make sure container is visible
+        const moveContainer = document.getElementById('implied-move-container');
+        if (moveContainer) {
+            moveContainer.classList.remove('d-none');
+        }
+
+        // Reset the info alert to the standard text
+        const infoAlert = document.querySelector('#implied-move-container .alert');
+        if (infoAlert) {
+            infoAlert.innerHTML = `
+                <i class="bi bi-info-circle"></i>
+                The implied move is calculated based on the At-The-Money straddle pricing.
+                This represents the market's expectation of price movement before expiration.
+            `;
+        }
+
+        // Add at the end of updateImpliedMoveAnalysis
+        console.log("Current DOM values:");
+        console.log("implied-move:", document.getElementById('implied-move')?.textContent);
+        console.log("expected-range:", document.getElementById('expected-range')?.textContent);
+        console.log("days-to-expiry:", document.getElementById('days-to-expiry')?.textContent);
+        console.log("straddle-price:", document.getElementById('straddle-price')?.textContent);
+
+        return true;  // Successfully updated
     },
 
     /**
@@ -855,37 +894,6 @@ const OptionsAnalytics = {
         console.log("Options volume chart updated");
     },
 
-    ensureElementsExist: function() {
-    // Check if key elements exist in the DOM
-    const elements = ['implied-move', 'expected-range', 'days-to-expiry', 'straddle-price'];
-    let allExist = true;
-
-    for (const id of elements) {
-        if (!document.getElementById(id)) {
-            allExist = false;
-            console.error(`Element with ID '${id}' not found in DOM`);
-        }
-    }
-
-    if (!allExist) {
-        console.log("Some elements are missing. Container may not be properly initialized.");
-
-        // Try to find the container
-        const container = document.getElementById('implied-move-container');
-        if (!container) {
-            console.error("Implied move container not found in DOM");
-            return false;
-        }
-
-        // Check if container is hidden
-        if (container.classList.contains('d-none')) {
-            console.log("Implied move container is hidden, making visible");
-            container.classList.remove('d-none');
-        }
-    }
-
-    return allExist;
-},
     /**
      * Update all charts at once
      */
