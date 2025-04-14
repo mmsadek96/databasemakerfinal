@@ -5,7 +5,6 @@ from server.services.openai_service import OpenAIService
 from server.utils.calculations import calculate_sentiment
 from server.utils.formatters import format_financial_data_for_openai
 from server.config import get_logger
-from cachetools import TTLCache
 from server.config import get_settings
 
 logger = get_logger(__name__)
@@ -18,8 +17,6 @@ class TranscriptService:
         self.client = AlphaVantageClient()
         self.openai = OpenAIService()
         self.settings = get_settings()
-        # Cache with longer TTL for transcript analysis
-        self.cache = TTLCache(maxsize=100, ttl=3600)  # 1 hour
 
     def get_previous_quarter(self, year: int, quarter: int) -> str:
         """Get the previous quarter string in YYYYQM format"""
@@ -39,12 +36,6 @@ class TranscriptService:
             include_financials: bool = True
     ) -> Dict[str, Any]:
         """Fetch and analyze earnings call transcript(s)"""
-        # Create a unique cache key
-        cache_key = f"transcript_{symbol}_{quarter}_{analyze_past_quarters}_{num_quarters}_{include_financials}"
-
-        if cache_key in self.cache:
-            return self.cache[cache_key]
-
         try:
             # Get current date information for determining quarters
             current_date = datetime.datetime.now()
@@ -128,7 +119,6 @@ class TranscriptService:
                     # Continue without financial data if there's an error
                     result["financial_data_error"] = str(e)
 
-            self.cache[cache_key] = result
             return result
         except Exception as e:
             logger.error(f"Error analyzing transcript for {symbol}: {e}")

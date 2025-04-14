@@ -15,6 +15,9 @@ class MongoDBHelper:
         self.client = None
         self.db = None
         self.options_collection = None
+        self.stocks_collection = None
+        self.indicators_collection = None
+
 
     def connect(self):
         """Connect to MongoDB"""

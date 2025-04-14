@@ -357,7 +357,10 @@ class OptionsUIController {
      * @param {string} symbol - Stock symbol
      */
     renderOptionsData(symbol) {
+
+        console.log("renderOptionsData called for", symbol);
         const optionsChain = optionsDataManager.getOptionsChain(symbol);
+        console.log("Options chain data:", optionsChain);
 
         if (!optionsChain) {
             this.showError(`No options data available for ${symbol}`);
@@ -451,6 +454,7 @@ class OptionsUIController {
             `;
 
             this.elements.tabsContainer.appendChild(tabLi);
+
         });
     }
 
@@ -490,10 +494,8 @@ class OptionsUIController {
             const formattedExpiry = this.formatDateForDisplay(expDate);
             const options = optionsDataManager.getOptionsForExpiration(this.symbol, expDate);
             const tabId = `exp-${expDate.replace(/[\/\s-]/g, '')}`;
-
             // Create options table for this expiration
             const optionsTable = this.createOptionsTable(options, expDate);
-
             // Add tab content
             const tabPane = document.createElement('div');
             tabPane.className = 'tab-pane fade';
@@ -536,7 +538,6 @@ class OptionsUIController {
 
         // Update the advanced analysis button reference
         this.elements.advancedAnalysisBtn = document.getElementById('toggle-advanced');
-
         // Reconnect event listener
         if (this.elements.advancedAnalysisBtn) {
             this.elements.advancedAnalysisBtn.addEventListener('click', () => {
@@ -552,119 +553,119 @@ class OptionsUIController {
      * @returns {HTMLTableElement} - Options table
      */
     createOptionsTable(options, expDate) {
-        if (!options) return document.createElement('div');
+    if (!options) return document.createElement('div');
 
-        // Separate calls and puts
-        const calls = options.calls || [];
-        const puts = options.puts || [];
+    // Separate calls and puts
+    const calls = options.calls || [];
+    const puts = options.puts || [];
 
-        // Create table
-        const table = document.createElement('table');
-        table.className = 'table table-sm table-striped table-hover options-table';
-        table.setAttribute('data-expiration', expDate);
+    // Create table
+    const table = document.createElement('table');
+    table.className = 'table table-sm table-striped table-hover options-table';
+    table.setAttribute('data-expiration', expDate);
 
-        // Create header
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        headerRow.className = 'bg-dark text-white';
+    // Create header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    headerRow.className = 'bg-dark text-white';
 
-        // Call columns
-        const callColumns = ['Last', 'Change', 'Bid', 'Ask', 'Vol', 'OI'];
-        if (this.includeGreeks) {
-            callColumns.push('IV', 'Delta', 'Gamma', 'Theta', 'Vega');
-        }
-
-        // Add header cells for calls
-        callColumns.forEach(col => {
-            const th = document.createElement('th');
-            th.className = 'text-end px-2';
-            th.textContent = col;
-            headerRow.appendChild(th);
-        });
-
-        // Strike column
-        const strikeHeader = document.createElement('th');
-        strikeHeader.className = 'text-center bg-light px-3';
-        strikeHeader.textContent = 'Strike';
-        headerRow.appendChild(strikeHeader);
-
-        // Put columns
-        const putColumns = ['Last', 'Change', 'Bid', 'Ask', 'Vol', 'OI'];
-        if (this.includeGreeks) {
-            putColumns.push('IV', 'Delta', 'Gamma', 'Theta', 'Vega');
-        }
-
-        // Add header cells for puts
-        putColumns.forEach(col => {
-            const th = document.createElement('th');
-            th.className = 'text-end px-2';
-            th.textContent = col;
-            headerRow.appendChild(th);
-        });
-
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-
-        // Create table body
-        const tbody = document.createElement('tbody');
-
-        // Get all unique strike prices
-        const allStrikes = new Set();
-        calls.forEach(call => allStrikes.add(parseFloat(call.strike)));
-        puts.forEach(put => allStrikes.add(parseFloat(put.strike)));
-
-        // Convert to array and sort
-        const sortedStrikes = Array.from(allStrikes).sort((a, b) => a - b);
-
-        // Create rows for each strike
-        sortedStrikes.forEach(strike => {
-            const row = document.createElement('tr');
-            row.setAttribute('data-strike', strike);
-
-            // Find call and put for this strike
-            const call = calls.find(c => parseFloat(c.strike) === strike);
-            const put = puts.find(p => parseFloat(p.strike) === strike);
-
-            // Call cells
-            if (call) {
-                this.addOptionCells(row, call, callColumns, 'call');
-            } else {
-                // Empty cells for call
-                callColumns.forEach(() => {
-                    const td = document.createElement('td');
-                    row.appendChild(td);
-                });
-            }
-
-            // Strike cell
-            const strikeCell = document.createElement('td');
-            strikeCell.className = 'text-center bg-light fw-bold strike-price px-3';
-            strikeCell.textContent = strike.toFixed(2);
-            row.appendChild(strikeCell);
-
-            // Put cells
-            if (put) {
-                this.addOptionCells(row, put, putColumns, 'put');
-            } else {
-                // Empty cells for put
-                putColumns.forEach(() => {
-                    const td = document.createElement('td');
-                    row.appendChild(td);
-                });
-            }
-
-            tbody.appendChild(row);
-        });
-
-        table.appendChild(tbody);
-
-        // Highlight ATM rows if we have stock price
-        if (this.stockPrice) {
-            this.highlightAtTheMoneyOptions(table, this.stockPrice);
-        }
-
-        return table;
+    // Call columns
+    const callColumns = ['Last', 'Change', 'Bid', 'Ask', 'Vol', 'OI'];
+    if (this.includeGreeks) {
+        callColumns.push('IV', 'Delta', 'Gamma', 'Theta', 'Vega');
     }
+
+    // Add header cells for calls
+    callColumns.forEach(col => {
+        const th = document.createElement('th');
+        th.className = 'text-end px-2';
+        th.textContent = col;
+        headerRow.appendChild(th);
+    });
+
+    // Strike column
+    const strikeHeader = document.createElement('th');
+    strikeHeader.className = 'text-center bg-light px-3';
+    strikeHeader.textContent = 'Strike';
+    headerRow.appendChild(strikeHeader);
+
+    // Put columns
+    const putColumns = ['Last', 'Change', 'Bid', 'Ask', 'Vol', 'OI'];
+    if (this.includeGreeks) {
+        putColumns.push('IV', 'Delta', 'Gamma', 'Theta', 'Vega');
+    }
+
+    // Add header cells for puts
+    putColumns.forEach(col => {
+        const th = document.createElement('th');
+        th.className = 'text-end px-2';
+        th.textContent = col;
+        headerRow.appendChild(th);
+    });
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create table body
+    const tbody = document.createElement('tbody');
+
+    // Get all unique strike prices
+    const allStrikes = new Set();
+    calls.forEach(call => allStrikes.add(parseFloat(call.strike_price)));
+    puts.forEach(put => allStrikes.add(parseFloat(put.strike_price)));
+
+    // Convert to array and sort
+    const sortedStrikes = Array.from(allStrikes).sort((a, b) => a - b);
+
+    // Create rows for each strike
+    sortedStrikes.forEach(strike => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-strike', strike);
+
+        // Find call and put for this strike
+        const call = calls.find(c => parseFloat(c.strike_price) === strike);
+        const put = puts.find(p => parseFloat(p.strike_price) === strike);
+
+        // Call cells
+        if (call) {
+            this.addOptionCells(row, call, callColumns, 'call');
+        } else {
+            // Empty cells for call
+            callColumns.forEach(() => {
+                const td = document.createElement('td');
+                row.appendChild(td);
+            });
+        }
+
+        // Strike cell
+        const strikeCell = document.createElement('td');
+        strikeCell.className = 'text-center bg-light fw-bold strike-price px-3';
+        strikeCell.textContent = strike.toFixed(2);
+        row.appendChild(strikeCell);
+
+        // Put cells
+        if (put) {
+            this.addOptionCells(row, put, putColumns, 'put');
+        } else {
+            // Empty cells for put
+            putColumns.forEach(() => {
+                const td = document.createElement('td');
+                row.appendChild(td);
+            });
+        }
+
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+
+    // Highlight ATM rows if we have stock price
+    if (this.stockPrice) {
+        this.highlightAtTheMoneyOptions(table, this.stockPrice);
+    }
+
+    return table;
+}
 
     /**
      * Add cells for an option to a table row
@@ -674,143 +675,143 @@ class OptionsUIController {
      * @param {string} type - Option type ('call' or 'put')
      */
     addOptionCells(row, option, columns, type) {
-        const cellClass = type === 'call' ? 'call-cell' : 'put-cell';
+    const cellClass = type === 'call' ? 'call-cell' : 'put-cell';
 
-        columns.forEach(col => {
-            const td = document.createElement('td');
-            td.className = `text-end px-2 ${cellClass}`;
+    columns.forEach(col => {
+        const td = document.createElement('td');
+        td.className = `text-end px-2 ${cellClass}`;
 
-            switch (col) {
-                case 'Last':
-                    td.textContent = this.formatCurrency(option.last);
-                    td.className += ' fw-bold';
+        switch (col) {
+            case 'Last':
+                td.textContent = this.formatCurrency(option.last_price);
+                td.className += ' fw-bold';
 
-                    // Make cell clickable to show option details
-                    td.style.cursor = 'pointer';
+                // Make cell clickable to show option details
+                td.style.cursor = 'pointer';
+                td.setAttribute('data-bs-toggle', 'tooltip');
+                td.setAttribute('data-bs-title', option.contract_name);
+                td.addEventListener('click', () => this.showOptionDetails(option));
+                break;
+
+            case 'Change':
+                // If change isn't in the data, show 0.00
+                const changeValue = option.change || 0;
+                td.textContent = `${changeValue >= 0 ? '+' : ''}${parseFloat(changeValue).toFixed(2)}`;
+                td.className += changeValue >= 0 ? ' text-success' : ' text-danger';
+                break;
+
+            case 'Bid':
+                td.textContent = this.formatCurrency(option.bid);
+                break;
+
+            case 'Ask':
+                td.textContent = this.formatCurrency(option.ask);
+
+                // Highlight wide spreads
+                const spread = parseFloat(option.ask) - parseFloat(option.bid);
+                const spreadPct = parseFloat(option.bid) > 0 ? (spread / parseFloat(option.bid)) * 100 : 0;
+
+                if (spreadPct > 20) {
+                    td.className += ' text-danger';
                     td.setAttribute('data-bs-toggle', 'tooltip');
-                    td.setAttribute('data-bs-title', option.contractID);
-                    td.addEventListener('click', () => this.showOptionDetails(option));
-                    break;
+                    td.setAttribute('data-bs-title', `Wide spread: ${spreadPct.toFixed(1)}%`);
+                }
+                break;
 
-                case 'Change':
-                    // If change isn't in the data, show 0.00
-                    const changeValue = option.change || 0;
-                    td.textContent = `${changeValue >= 0 ? '+' : ''}${parseFloat(changeValue).toFixed(2)}`;
-                    td.className += changeValue >= 0 ? ' text-success' : ' text-danger';
-                    break;
+            case 'Vol':
+                td.textContent = this.formatNumber(option.volume);
 
-                case 'Bid':
-                    td.textContent = this.formatCurrency(option.bid);
-                    break;
+                // Highlight high volume
+                if (parseInt(option.volume) > 1000) {
+                    td.className += ' text-primary fw-bold';
+                }
+                break;
 
-                case 'Ask':
-                    td.textContent = this.formatCurrency(option.ask);
+            case 'OI':
+                td.textContent = this.formatNumber(option.open_interest);
 
-                    // Highlight wide spreads
-                    const spread = parseFloat(option.ask) - parseFloat(option.bid);
-                    const spreadPct = parseFloat(option.bid) > 0 ? (spread / parseFloat(option.bid)) * 100 : 0;
+                // Highlight high open interest
+                if (parseInt(option.open_interest) > 5000) {
+                    td.className += ' text-primary fw-bold';
+                }
+                break;
 
-                    if (spreadPct > 20) {
+            case 'IV':
+                if (option.implied_volatility !== undefined) {
+                    const ivValue = parseFloat(option.implied_volatility) * 100;
+                    td.textContent = ivValue.toFixed(1) + '%';
+
+                    // Color code IV
+                    if (ivValue > 100) {
+                        td.className += ' text-danger fw-bold';
+                    } else if (ivValue > 50) {
+                        td.className += ' text-warning';
+                    }
+                } else {
+                    td.textContent = '-';
+                }
+                break;
+
+            case 'Delta':
+                if (option.delta !== undefined) {
+                    td.textContent = parseFloat(option.delta).toFixed(3);
+
+                    // Highlight extreme deltas
+                    const absValue = Math.abs(parseFloat(option.delta));
+                    if (absValue > 0.9) {
                         td.className += ' text-danger';
-                        td.setAttribute('data-bs-toggle', 'tooltip');
-                        td.setAttribute('data-bs-title', `Wide spread: ${spreadPct.toFixed(1)}%`);
                     }
-                    break;
+                } else {
+                    td.textContent = '-';
+                }
+                break;
 
-                case 'Vol':
-                    td.textContent = this.formatNumber(option.volume);
+            case 'Gamma':
+                if (option.gamma !== undefined) {
+                    td.textContent = parseFloat(option.gamma).toFixed(4);
 
-                    // Highlight high volume
-                    if (parseInt(option.volume) > 1000) {
-                        td.className += ' text-primary fw-bold';
+                    // Highlight high gamma
+                    if (parseFloat(option.gamma) > 0.05) {
+                        td.className += ' text-warning fw-bold';
                     }
-                    break;
+                } else {
+                    td.textContent = '-';
+                }
+                break;
 
-                case 'OI':
-                    td.textContent = this.formatNumber(option.open_interest);
+            case 'Theta':
+                if (option.theta !== undefined) {
+                    td.textContent = parseFloat(option.theta).toFixed(4);
 
-                    // Highlight high open interest
-                    if (parseInt(option.open_interest) > 5000) {
-                        td.className += ' text-primary fw-bold';
+                    // Highlight high negative theta
+                    if (parseFloat(option.theta) < -0.01) {
+                        td.className += ' text-danger';
                     }
-                    break;
+                } else {
+                    td.textContent = '-';
+                }
+                break;
 
-                case 'IV':
-                    if (option.implied_volatility !== undefined) {
-                        const ivValue = parseFloat(option.implied_volatility) * 100;
-                        td.textContent = ivValue.toFixed(1) + '%';
+            case 'Vega':
+                if (option.vega !== undefined) {
+                    td.textContent = parseFloat(option.vega).toFixed(4);
 
-                        // Color code IV
-                        if (ivValue > 100) {
-                            td.className += ' text-danger fw-bold';
-                        } else if (ivValue > 50) {
-                            td.className += ' text-warning';
-                        }
-                    } else {
-                        td.textContent = '-';
+                    // Highlight high vega
+                    if (parseFloat(option.vega) > 0.1) {
+                        td.className += ' text-info';
                     }
-                    break;
+                } else {
+                    td.textContent = '-';
+                }
+                break;
 
-                case 'Delta':
-                    if (option.delta !== undefined) {
-                        td.textContent = parseFloat(option.delta).toFixed(3);
+            default:
+                td.textContent = option[col.toLowerCase()] || '-';
+        }
 
-                        // Highlight extreme deltas
-                        const absValue = Math.abs(parseFloat(option.delta));
-                        if (absValue > 0.9) {
-                            td.className += ' text-danger';
-                        }
-                    } else {
-                        td.textContent = '-';
-                    }
-                    break;
-
-                case 'Gamma':
-                    if (option.gamma !== undefined) {
-                        td.textContent = parseFloat(option.gamma).toFixed(4);
-
-                        // Highlight high gamma
-                        if (parseFloat(option.gamma) > 0.05) {
-                            td.className += ' text-warning fw-bold';
-                        }
-                    } else {
-                        td.textContent = '-';
-                    }
-                    break;
-
-                case 'Theta':
-                    if (option.theta !== undefined) {
-                        td.textContent = parseFloat(option.theta).toFixed(4);
-
-                        // Highlight high negative theta
-                        if (parseFloat(option.theta) < -0.01) {
-                            td.className += ' text-danger';
-                        }
-                    } else {
-                        td.textContent = '-';
-                    }
-                    break;
-
-                case 'Vega':
-                    if (option.vega !== undefined) {
-                        td.textContent = parseFloat(option.vega).toFixed(4);
-
-                        // Highlight high vega
-                        if (parseFloat(option.vega) > 0.1) {
-                            td.className += ' text-info';
-                        }
-                    } else {
-                        td.textContent = '-';
-                    }
-                    break;
-
-                default:
-                    td.textContent = option[col.toLowerCase()] || '-';
-            }
-
-            row.appendChild(td);
-        });
-    }
+        row.appendChild(td);
+    });
+}
 
     /**
      * Highlight at-the-money options in a table
@@ -1448,6 +1449,8 @@ class OptionsUIController {
         if (value === undefined || value === null) return 'N/A';
         return new Intl.NumberFormat().format(parseInt(value));
     }
+
+
 
     /**
      * Format date for display

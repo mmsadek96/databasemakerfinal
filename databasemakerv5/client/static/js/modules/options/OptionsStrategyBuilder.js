@@ -179,7 +179,7 @@ class OptionsStrategyBuilder {
     buildLongCallStrategy(options, stockPrice, expDate) {
         // Find an ATM or slightly OTM call
         const targetStrike = this.findClosestStrike(stockPrice * 1.05, options);
-        const call = options.calls.find(opt => parseFloat(opt.strike) === targetStrike);
+        const call = options.calls.find(opt => parseFloat(opt.strike_price) === targetStrike);
 
         if (!call) {
             this.showAlert('Could not find appropriate options for this strategy', 'warning');
@@ -187,7 +187,7 @@ class OptionsStrategyBuilder {
         }
 
         // Calculate cost and potential profit
-        const cost = parseFloat(call.last) * 100; // Per contract (100 shares)
+        const cost = parseFloat(call.last_price) * 100; // Per contract (100 shares)
 
         return {
             type: 'long-call',
@@ -197,15 +197,15 @@ class OptionsStrategyBuilder {
                 {
                     type: 'call',
                     action: 'buy',
-                    strike: call.strike,
-                    price: call.last,
-                    contract: call.contractID
+                    strike: call.strike_price,
+                    price: call.last_price,
+                    contract: call.contract_name
                 }
             ],
             cost: cost,
             maxProfit: 'Unlimited',
             maxLoss: cost,
-            breakEven: parseFloat(call.strike) + parseFloat(call.last)
+            breakEven: parseFloat(call.strike_price) + parseFloat(call.last_price)
         };
     }
 
@@ -219,7 +219,7 @@ class OptionsStrategyBuilder {
     buildLongPutStrategy(options, stockPrice, expDate) {
         // Find an ATM or slightly OTM put
         const targetStrike = this.findClosestStrike(stockPrice * 0.95, options);
-        const put = options.puts.find(opt => parseFloat(opt.strike) === targetStrike);
+        const put = options.puts.find(opt => parseFloat(opt.strike_price) === targetStrike);
 
         if (!put) {
             this.showAlert('Could not find appropriate options for this strategy', 'warning');
@@ -227,8 +227,8 @@ class OptionsStrategyBuilder {
         }
 
         // Calculate cost and potential profit
-        const cost = parseFloat(put.last) * 100; // Per contract (100 shares)
-        const maxProfit = parseFloat(put.strike) * 100 - cost;
+        const cost = parseFloat(put.last_price) * 100; // Per contract (100 shares)
+        const maxProfit = parseFloat(put.strike_price) * 100 - cost;
 
         return {
             type: 'long-put',
@@ -238,15 +238,15 @@ class OptionsStrategyBuilder {
                 {
                     type: 'put',
                     action: 'buy',
-                    strike: put.strike,
-                    price: put.last,
-                    contract: put.contractID
+                    strike: put.strike_price,
+                    price: put.last_price,
+                    contract: put.contract_name
                 }
             ],
             cost: cost,
             maxProfit: maxProfit,
             maxLoss: cost,
-            breakEven: parseFloat(put.strike) - parseFloat(put.last)
+            breakEven: parseFloat(put.strike_price) - parseFloat(put.last_price)
         };
     }
 
@@ -260,11 +260,11 @@ class OptionsStrategyBuilder {
     buildBullCallSpreadStrategy(options, stockPrice, expDate) {
         // Find ATM call to buy
         const lowerStrike = this.findClosestStrike(stockPrice, options);
-        const buyCall = options.calls.find(opt => parseFloat(opt.strike) === lowerStrike);
+        const buyCall = options.calls.find(opt => parseFloat(opt.strike_price) === lowerStrike);
 
         // Find OTM call to sell (about 10% higher)
         const higherStrike = this.findClosestStrike(stockPrice * 1.1, options);
-        const sellCall = options.calls.find(opt => parseFloat(opt.strike) === higherStrike);
+        const sellCall = options.calls.find(opt => parseFloat(opt.strike_price) === higherStrike);
 
         if (!buyCall || !sellCall) {
             this.showAlert('Could not find appropriate options for this strategy', 'warning');
@@ -272,7 +272,7 @@ class OptionsStrategyBuilder {
         }
 
         // Calculate cost and potential profit
-        const cost = (parseFloat(buyCall.last) - parseFloat(sellCall.last)) * 100;
+        const cost = (parseFloat(buyCall.last_price) - parseFloat(sellCall.last_price)) * 100;
         const maxProfit = ((higherStrike - lowerStrike) * 100) - cost;
 
         return {
@@ -283,22 +283,22 @@ class OptionsStrategyBuilder {
                 {
                     type: 'call',
                     action: 'buy',
-                    strike: buyCall.strike,
-                    price: buyCall.last,
-                    contract: buyCall.contractID
+                    strike: buyCall.strike_price,
+                    price: buyCall.last_price,
+                    contract: buyCall.contract_name
                 },
                 {
                     type: 'call',
                     action: 'sell',
-                    strike: sellCall.strike,
-                    price: sellCall.last,
-                    contract: sellCall.contractID
+                    strike: sellCall.strike_price,
+                    price: sellCall.last_price,
+                    contract: sellCall.contract_name
                 }
             ],
             cost: cost,
             maxProfit: maxProfit,
             maxLoss: cost,
-            breakEven: parseFloat(buyCall.strike) + (cost / 100)
+            breakEven: parseFloat(buyCall.strike_price) + (cost / 100)
         };
     }
 
@@ -312,11 +312,11 @@ class OptionsStrategyBuilder {
     buildBearPutSpreadStrategy(options, stockPrice, expDate) {
         // Find ATM put to buy
         const higherStrike = this.findClosestStrike(stockPrice, options);
-        const buyPut = options.puts.find(opt => parseFloat(opt.strike) === higherStrike);
+        const buyPut = options.puts.find(opt => parseFloat(opt.strike_price) === higherStrike);
 
         // Find OTM put to sell (about 10% lower)
         const lowerStrike = this.findClosestStrike(stockPrice * 0.9, options);
-        const sellPut = options.puts.find(opt => parseFloat(opt.strike) === lowerStrike);
+        const sellPut = options.puts.find(opt => parseFloat(opt.strike_price) === lowerStrike);
 
         if (!buyPut || !sellPut) {
             this.showAlert('Could not find appropriate options for this strategy', 'warning');
@@ -324,7 +324,7 @@ class OptionsStrategyBuilder {
         }
 
         // Calculate cost and potential profit
-        const cost = (parseFloat(buyPut.last) - parseFloat(sellPut.last)) * 100;
+        const cost = (parseFloat(buyPut.last_price) - parseFloat(sellPut.last_price)) * 100;
         const maxProfit = ((higherStrike - lowerStrike) * 100) - cost;
 
         return {
@@ -335,22 +335,22 @@ class OptionsStrategyBuilder {
                 {
                     type: 'put',
                     action: 'buy',
-                    strike: buyPut.strike,
-                    price: buyPut.last,
-                    contract: buyPut.contractID
+                    strike: buyPut.strike_price,
+                    price: buyPut.last_price,
+                    contract: buyPut.contract_name
                 },
                 {
                     type: 'put',
                     action: 'sell',
-                    strike: sellPut.strike,
-                    price: sellPut.last,
-                    contract: sellPut.contractID
+                    strike: sellPut.strike_price,
+                    price: sellPut.last_price,
+                    contract: sellPut.contract_name
                 }
             ],
             cost: cost,
             maxProfit: maxProfit,
             maxLoss: cost,
-            breakEven: parseFloat(buyPut.strike) - (cost / 100)
+            breakEven: parseFloat(buyPut.strike_price) - (cost / 100)
         };
     }
 
@@ -368,9 +368,9 @@ class OptionsStrategyBuilder {
         const upperStrike = this.findClosestStrike(stockPrice * 1.05, options);
 
         // Find the options
-        const lowerCall = options.calls.find(opt => parseFloat(opt.strike) === lowerStrike);
-        const middleCall = options.calls.find(opt => parseFloat(opt.strike) === middleStrike);
-        const upperCall = options.calls.find(opt => parseFloat(opt.strike) === upperStrike);
+        const lowerCall = options.calls.find(opt => parseFloat(opt.strike_price) === lowerStrike);
+        const middleCall = options.calls.find(opt => parseFloat(opt.strike_price) === middleStrike);
+        const upperCall = options.calls.find(opt => parseFloat(opt.strike_price) === upperStrike);
 
         if (!lowerCall || !middleCall || !upperCall) {
             this.showAlert('Could not find appropriate options for this strategy', 'warning');
@@ -378,7 +378,7 @@ class OptionsStrategyBuilder {
         }
 
         // Calculate cost and potential profit
-        const cost = (parseFloat(lowerCall.last) - 2 * parseFloat(middleCall.last) + parseFloat(upperCall.last)) * 100;
+        const cost = (parseFloat(lowerCall.last_price) - 2 * parseFloat(middleCall.last_price) + parseFloat(upperCall.last_price)) * 100;
         const maxProfit = ((middleStrike - lowerStrike) * 100) - cost;
 
         return {
@@ -389,31 +389,31 @@ class OptionsStrategyBuilder {
                 {
                     type: 'call',
                     action: 'buy',
-                    strike: lowerCall.strike,
-                    price: lowerCall.last,
-                    contract: lowerCall.contractID
+                    strike: lowerCall.strike_price,
+                    price: lowerCall.last_price,
+                    contract: lowerCall.contract_name
                 },
                 {
                     type: 'call',
                     action: 'sell',
-                    strike: middleCall.strike,
-                    price: middleCall.last,
-                    contract: middleCall.contractID,
+                    strike: middleCall.strike_price,
+                    price: middleCall.last_price,
+                    contract: middleCall.contract_name,
                     quantity: 2
                 },
                 {
                     type: 'call',
                     action: 'buy',
-                    strike: upperCall.strike,
-                    price: upperCall.last,
-                    contract: upperCall.contractID
+                    strike: upperCall.strike_price,
+                    price: upperCall.last_price,
+                    contract: upperCall.contract_name
                 }
             ],
             cost: cost,
             maxProfit: maxProfit,
             maxLoss: cost > 0 ? cost : 0,
-            lowerBreakEven: parseFloat(lowerCall.strike) + (cost / 100),
-            upperBreakEven: parseFloat(upperCall.strike) - (cost / 100)
+            lowerBreakEven: parseFloat(lowerCall.strike_price) + (cost / 100),
+            upperBreakEven: parseFloat(upperCall.strike_price) - (cost / 100)
         };
     }
 
@@ -434,10 +434,10 @@ class OptionsStrategyBuilder {
         const callBuyStrike = this.findClosestStrike(stockPrice * 1.2, options);
 
         // Find the options
-        const sellPut = options.puts.find(opt => parseFloat(opt.strike) === putSellStrike);
-        const buyPut = options.puts.find(opt => parseFloat(opt.strike) === putBuyStrike);
-        const sellCall = options.calls.find(opt => parseFloat(opt.strike) === callSellStrike);
-        const buyCall = options.calls.find(opt => parseFloat(opt.strike) === callBuyStrike);
+        const sellPut = options.puts.find(opt => parseFloat(opt.strike_price) === putSellStrike);
+        const buyPut = options.puts.find(opt => parseFloat(opt.strike_price) === putBuyStrike);
+        const sellCall = options.calls.find(opt => parseFloat(opt.strike_price) === callSellStrike);
+        const buyCall = options.calls.find(opt => parseFloat(opt.strike_price) === callBuyStrike);
 
         if (!sellPut || !buyPut || !sellCall || !buyCall) {
             this.showAlert('Could not find appropriate options for this strategy', 'warning');
@@ -445,8 +445,8 @@ class OptionsStrategyBuilder {
         }
 
         // Calculate credit and max loss
-        const credit = (parseFloat(sellPut.last) - parseFloat(buyPut.last) +
-                       parseFloat(sellCall.last) - parseFloat(buyCall.last)) * 100;
+        const credit = (parseFloat(sellPut.last_price) - parseFloat(buyPut.last_price) +
+                       parseFloat(sellCall.last_price) - parseFloat(buyCall.last_price)) * 100;
 
         // Calculate max loss
         const maxLoss = Math.min(
@@ -462,37 +462,37 @@ class OptionsStrategyBuilder {
                 {
                     type: 'put',
                     action: 'sell',
-                    strike: sellPut.strike,
-                    price: sellPut.last,
-                    contract: sellPut.contractID
+                    strike: sellPut.strike_price,
+                    price: sellPut.last_price,
+                    contract: sellPut.contract_name
                 },
                 {
                     type: 'put',
                     action: 'buy',
-                    strike: buyPut.strike,
-                    price: buyPut.last,
-                    contract: buyPut.contractID
+                    strike: buyPut.strike_price,
+                    price: buyPut.last_price,
+                    contract: buyPut.contract_name
                 },
                 {
                     type: 'call',
                     action: 'sell',
-                    strike: sellCall.strike,
-                    price: sellCall.last,
-                    contract: sellCall.contractID
+                    strike: sellCall.strike_price,
+                    price: sellCall.last_price,
+                    contract: sellCall.contract_name
                 },
                 {
                     type: 'call',
                     action: 'buy',
-                    strike: buyCall.strike,
-                    price: buyCall.last,
-                    contract: buyCall.contractID
+                    strike: buyCall.strike_price,
+                    price: buyCall.last_price,
+                    contract: buyCall.contract_name
                 }
             ],
             cost: -credit,  // Negative cost means credit
             maxProfit: credit,
             maxLoss: maxLoss,
-            lowerBreakEven: parseFloat(sellPut.strike) - (credit / 100),
-            upperBreakEven: parseFloat(sellCall.strike) + (credit / 100)
+            lowerBreakEven: parseFloat(sellPut.strike_price) - (credit / 100),
+            upperBreakEven: parseFloat(sellCall.strike_price) + (credit / 100)
         };
     }
 
@@ -506,8 +506,8 @@ class OptionsStrategyBuilder {
         // Collect all unique strike prices
         const strikes = new Set();
 
-        options.calls.forEach(call => strikes.add(parseFloat(call.strike)));
-        options.puts.forEach(put => strikes.add(parseFloat(put.strike)));
+        options.calls.forEach(call => strikes.add(parseFloat(call.strike_price)));
+        options.puts.forEach(put => strikes.add(parseFloat(put.strike_price)));
 
         // Convert to array and sort
         const strikeArray = Array.from(strikes).sort((a, b) => a - b);
@@ -677,14 +677,14 @@ class OptionsStrategyBuilder {
      */
     addToCustomStrategy(option) {
         this.customStrategy.legs.push({
-            type: option.type.toLowerCase(),
+            type: option.contract_type.toLowerCase(),
             action: 'buy', // Default action
-            strike: option.strike,
-            price: option.last,
-            contract: option.contractID
+            strike: option.strike_price,
+            price: option.last_price,
+            contract: option.contract_name
         });
 
-        this.showAlert(`Added ${option.type.toUpperCase()} ${option.strike} to custom strategy`, 'success');
+        this.showAlert(`Added ${option.contract_type.toUpperCase()} ${option.strike_price} to custom strategy`, 'success');
 
         // Display the custom strategy
         this.displayCustomStrategy();
@@ -737,9 +737,9 @@ class OptionsStrategyBuilder {
      * @returns {string} - Formatted currency string
      */
     formatCurrency(value) {
-            if (value === undefined || value === null) return 'N/A';
-            return '$ ' + parseFloat(value).toFixed(2);
-        }
+        if (value === undefined || value === null) return 'N/A';
+        return '$ ' + parseFloat(value).toFixed(2);
+    }
 
     /**
      * Format date for display

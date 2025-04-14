@@ -4,7 +4,6 @@ from typing import List, Dict, Optional, Any
 from server.services.alpha_vantage import AlphaVantageClient
 from server.utils.data_processing import apply_date_filter
 from server.config import get_logger
-from cachetools import TTLCache
 from server.config import get_settings
 
 logger = get_logger(__name__)
@@ -16,8 +15,6 @@ class CorrelationService:
     def __init__(self):
         self.client = AlphaVantageClient()
         self.settings = get_settings()
-        # Cache with time-to-live (TTL) in seconds
-        self.cache = TTLCache(maxsize=100, ttl=self.settings.CACHE_TTL)
 
     async def calculate_correlation(self,
                                     stocks: Optional[List[str]] = None,
@@ -25,12 +22,6 @@ class CorrelationService:
                                     start_date: Optional[str] = None,
                                     end_date: Optional[str] = None) -> Dict[str, Any]:
         """Calculate correlation between stocks and/or indicators"""
-        # Create a unique cache key based on inputs
-        cache_key = f"corr_{'_'.join(stocks or [])}_{','.join(indicators or [])}_{start_date}_{end_date}"
-
-        if cache_key in self.cache:
-            return self.cache[cache_key]
-
         stocks = stocks or []
         indicators = indicators or []
 
@@ -84,7 +75,6 @@ class CorrelationService:
                 "matrix": corr_matrix.values.tolist()
             }
 
-            self.cache[cache_key] = corr_data
             return corr_data
         except Exception as e:
             logger.error(f"Error calculating correlation: {e}")
