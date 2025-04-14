@@ -115,7 +115,7 @@ class OptionsUIController {
         // Data loaded event
         optionsDataManager.on('dataLoaded', (data) => {
             this.hideLoading();
-            this.renderOptionsData(data.symbol, data.fromCache);
+            this.renderOptionsData(data.symbol);
         });
 
         // Error event
@@ -355,9 +355,8 @@ class OptionsUIController {
     /**
      * Render options data
      * @param {string} symbol - Stock symbol
-     * @param {boolean} fromCache - Whether data is from cache
      */
-    renderOptionsData(symbol, fromCache) {
+    renderOptionsData(symbol) {
         const optionsChain = optionsDataManager.getOptionsChain(symbol);
 
         if (!optionsChain) {
@@ -393,9 +392,36 @@ class OptionsUIController {
             this.currentExpiration = expirationDates[0];
         }
 
-        // Display notification if using cached data
-        if (fromCache) {
-            this.showCachedDataNotification();
+        // Show "data from database" indicator if needed
+        this.showDataSourceIndicator(optionsDataManager.lastUpdated);
+    }
+
+    /**
+     * Show data source indicator
+     * @param {Date} lastUpdated - Time the data was last updated
+     */
+    showDataSourceIndicator(lastUpdated) {
+        // Create an indicator element if it doesn't exist
+        let indicator = document.getElementById('data-source-indicator');
+
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'data-source-indicator';
+            indicator.className = 'alert alert-info';
+            indicator.innerHTML = `
+                <i class="bi bi-database"></i>
+                <span>Options data loaded from database.</span>
+                <span id="last-updated-time"></span>
+            `;
+
+            this.elements.optionsContainer.prepend(indicator);
+        }
+
+        // Update last updated time
+        const timeElement = document.getElementById('last-updated-time');
+        if (timeElement && lastUpdated) {
+            const timeAgo = this.getTimeAgo(lastUpdated);
+            timeElement.textContent = ` Last updated: ${timeAgo}.`;
         }
     }
 
@@ -823,7 +849,7 @@ class OptionsUIController {
                 // Exact ATM
                 row.classList.add('table-primary');
                 const strikeCell = row.querySelector('.strike-price');
-                if (strikeCell) {
+                if (strikeCell) {a
                     strikeCell.classList.add('bg-primary', 'text-white');
                 }
             } else if (diff <= atmThreshold) {
@@ -838,9 +864,6 @@ class OptionsUIController {
      * @param {Object} option - Option data
      */
     showOptionDetails(option) {
-        // Implement this to show a modal with option details
-        console.log('Option details:', option);
-
         // Create a modal dynamically or use a template if it exists
         const modalContent = `
             <div class="modal-dialog modal-lg">
@@ -1383,47 +1406,6 @@ class OptionsUIController {
     }
 
     /**
-     * Show notification for cached data
-     */
-    showCachedDataNotification() {
-        // Create a notification element if it doesn't exist
-        let notification = document.getElementById('cached-data-notification');
-
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'cached-data-notification';
-            notification.className = 'alert alert-info alert-dismissible fade show';
-            notification.innerHTML = `
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>Using cached data.</strong> 
-                <span id="cache-time"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                <button type="button" class="btn btn-sm btn-primary ms-3" id="refresh-data-btn">Refresh Data</button>
-            `;
-
-            this.elements.optionsContainer.prepend(notification);
-
-            // Add refresh button listener
-            const refreshBtn = document.getElementById('refresh-data-btn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    // Clear cache for this symbol and reload
-                    optionsDataManager.clearCache(this.symbol);
-                    this.loadOptionsData();
-                });
-            }
-        }
-
-        // Update cache time
-        const cacheTime = document.getElementById('cache-time');
-        if (cacheTime) {
-            const lastUpdated = optionsDataManager.lastUpdated;
-            const timeAgo = this.getTimeAgo(lastUpdated);
-            cacheTime.textContent = `Last updated ${timeAgo}.`;
-        }
-    }
-
-    /**
      * Destroy chart instances to prevent memory leaks
      */
     destroyCharts() {
@@ -1453,9 +1435,9 @@ class OptionsUIController {
      * @returns {string} - Formatted currency string
      */
     formatCurrency(value) {
-            if (value === undefined || value === null) return 'N/A';
-            return '$ ' + parseFloat(value).toFixed(2);
-        }
+        if (value === undefined || value === null) return 'N/A';
+        return '$ ' + parseFloat(value).toFixed(2);
+    }
 
     /**
      * Format number with thousands separators

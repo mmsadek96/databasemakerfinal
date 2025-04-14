@@ -2,6 +2,10 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from functools import lru_cache
+# server/config/settings.py
+from pydantic_settings import BaseSettings
+from pydantic import Field
+from functools import lru_cache
 
 
 class Settings(BaseSettings):
@@ -11,16 +15,14 @@ class Settings(BaseSettings):
     PORT: int = Field(8000, env="PORT")
 
     # API Keys
-
     ALPHA_VANTAGE_API_KEY: str = Field(..., env="ALPHA_VANTAGE_API_KEY")
     OPENAI_API_KEY: str = Field(..., env="OPENAI_API_KEY")
-
-    # Cache settings
-    CACHE_TTL: int = Field(300, env="CACHE_TTL")  # 5 minutes default
+    MONGODB_PASSWORD: str = Field(..., env="MONGODB_PASSWORD")
 
     class Config:
         env_file = ".env"
         case_sensitive = True
+
 
 
 @lru_cache()

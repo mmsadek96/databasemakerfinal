@@ -1,8 +1,8 @@
+# server/services/options_service.py
 from typing import List, Dict, Any
 from server.services.alpha_vantage import AlphaVantageClient
+from server.database.mongodb_helper import MongoDBHelper
 from server.config import get_logger
-from cachetools import TTLCache
-from server.config import get_settings
 
 logger = get_logger(__name__)
 
@@ -12,28 +12,32 @@ class OptionsService:
 
     def __init__(self):
         self.client = AlphaVantageClient()
-        self.settings = get_settings()
-        # Cache with time-to-live (TTL) in seconds - shorter for options data
-        self.cache = TTLCache(maxsize=100, ttl=300)  # 5 minutes
+        self.mongo = MongoDBHelper()
+        self.mongo_connected = self.mongo.connect()
 
     async def get_options_data(self, symbol: str, require_greeks: bool = False) -> List[Dict[str, Any]]:
         """Get options chain data for a given symbol"""
-        cache_key = f"options_{symbol}_{require_greeks}"
-
-        if cache_key in self.cache:
-            return self.cache[cache_key]
-
         try:
+            # Try to get from MongoDB first if connection is available
+            if self.mongo_connected:
+                options_data = self.mongo.get_options_data(symbol, require_greeks)
+                if options_data:
+                    logger.info(f"Using MongoDB data for {symbol}")
+                    return options_data
+
+            # If not found in MongoDB or connection failed, fetch from API
             options_data = await self.client.get_options_data(symbol, require_greeks)
 
             if not options_data:
-                # Check specifically if this is a premium endpoint issue
-                logger.warning(
-                    f"No options data available for {symbol} - this could be because REALTIME_OPTIONS is a premium endpoint")
-                raise ValueError(
-                    f"No options data found for symbol: {symbol}. The REALTIME_OPTIONS endpoint requires a premium Alpha Vantage subscription.")
+                logger.warning(f"No options data available for {symbol}")
+                raise ValueError(f"No options data found for symbol: {symbol}")
 
-            self.cache[cache_key] = options_data
+            # Store in MongoDB if connection is available
+            if self.mongo_connected:
+                success = self.mongo.store_options_data(symbol, require_greeks, options_data)
+                if success:
+                    logger.info(f"Saved options data for {symbol} to MongoDB")
+
             return options_data
         except Exception as e:
             logger.error(f"Error getting options data for {symbol}: {e}")

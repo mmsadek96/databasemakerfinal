@@ -6,75 +6,15 @@
  */
 class OptionsDataManager {
     constructor() {
-        // Main data storage
+        // Main data storage - in-memory only for current session
         this.optionsData = {};
-        this.stockData = {};
         this.lastUpdated = null;
-
-        // Cache settings
-        this.cacheExpiration = 15 * 60 * 1000; // 15 minutes in milliseconds
 
         // Event handling
         this.eventHandlers = {
             'dataLoaded': [],
             'error': []
         };
-
-        // Initialize local storage if needed
-        this.initializeStorage();
-    }
-
-    /**
-     * Initialize local storage for options data
-     */
-    initializeStorage() {
-        if (!localStorage.getItem('optionsCache')) {
-            localStorage.setItem('optionsCache', JSON.stringify({}));
-        }
-
-        // Try to load any cached data
-        try {
-            const cachedData = JSON.parse(localStorage.getItem('optionsCache'));
-            if (cachedData && cachedData.data && cachedData.timestamp) {
-                // Check if cache is still valid (within expiration time)
-                const now = new Date().getTime();
-                if (now - cachedData.timestamp < this.cacheExpiration) {
-                    this.optionsData = cachedData.data;
-                    this.lastUpdated = new Date(cachedData.timestamp);
-                    console.log('Loaded valid options data from cache');
-                }
-            }
-        } catch (error) {
-            console.error('Error loading cached options data:', error);
-            // Reset cache if corrupted
-            localStorage.setItem('optionsCache', JSON.stringify({}));
-        }
-    }
-
-    /**
-     * Save current options data to local storage
-     */
-    saveToCache() {
-        const cacheData = {
-            timestamp: new Date().getTime(),
-            data: this.optionsData
-        };
-
-        try {
-            localStorage.setItem('optionsCache', JSON.stringify(cacheData));
-            console.log('Saved options data to cache');
-        } catch (error) {
-            console.error('Error saving options data to cache:', error);
-            // If localStorage is full, clear it and try again
-            if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-                localStorage.clear();
-                try {
-                    localStorage.setItem('optionsCache', JSON.stringify(cacheData));
-                } catch (retryError) {
-                    console.error('Failed to save cache even after clearing localStorage:', retryError);
-                }
-            }
-        }
     }
 
     /**
@@ -90,17 +30,6 @@ class OptionsDataManager {
             // Update UI to show loading state
             this.triggerEvent('loadingStarted', { symbol });
 
-            // Check if we have fresh data in cache
-            if (this.hasValidCache(symbol)) {
-                console.log(`Using cached data for ${symbol}`);
-                this.triggerEvent('dataLoaded', {
-                    symbol,
-                    data: this.optionsData[symbol],
-                    fromCache: true
-                });
-                return this.optionsData[symbol];
-            }
-
             // Make API request to your backend
             const response = await fetch(`/api/options/${symbol}?require_greeks=${includeGreeks}`);
 
@@ -110,24 +39,8 @@ class OptionsDataManager {
 
             const data = await response.json();
 
-                // ADD THIS DEBUGGING CODE
-            console.log("API response data:", data);
-            console.log("Data type:", typeof data);
-            console.log("Is array?", Array.isArray(data));
-            if (typeof data === 'object') {
-                console.log("Object keys:", Object.keys(data));
-                if (data.data) {
-                    console.log("data.data is array?", Array.isArray(data.data));
-                    console.log("First few items:", data.data.slice(0, 2));
-                }
-            }
-
-
-            // Process and store the data
+            // Process the data
             this.processOptionsData(symbol, data);
-
-            // Save to cache
-            this.saveToCache();
 
             // Notify listeners
             this.triggerEvent('dataLoaded', {
@@ -148,88 +61,72 @@ class OptionsDataManager {
     }
 
     /**
-     * Check if we have valid cached data for a symbol
-     * @param {string} symbol - Stock symbol
-     * @returns {boolean} - Whether valid cache exists
-     */
-    hasValidCache(symbol) {
-        if (!this.optionsData[symbol] || !this.lastUpdated) {
-            return false;
-        }
-
-        const now = new Date().getTime();
-        const lastUpdate = this.lastUpdated.getTime();
-
-        return (now - lastUpdate) < this.cacheExpiration;
-    }
-
-    /**
      * Process and organize options data
      * @param {string} symbol - Stock symbol
      * @param {Array} data - Raw options data from API
      */
     processOptionsData(symbol, data) {
-    // Check if data is an array directly or if it has a data property that's an array
-    let optionsArray;
+        // Check if data is an array directly or if it has a data property that's an array
+        let optionsArray;
 
-    if (Array.isArray(data)) {
-        // API returned an array directly
-        optionsArray = data;
-    } else if (data && data.data && Array.isArray(data.data)) {
-        // API returned {data: [...]} format
-        optionsArray = data.data;
-    } else {
-        throw new Error('Invalid options data format received from API');
-    }
-
-    // Store the raw data
-    this.optionsData[symbol] = {
-        raw: optionsArray,
-        byExpiration: {},
-        lastUpdated: new Date(),
-        // Store the original response format for future reference
-        originalResponse: data
-    };
-
-    // Organize options by expiration date
-    optionsArray.forEach(option => {
-        // Check for expiration_date or expiration property
-        const expDate = option.expiration_date || option.expiration;
-
-        if (!this.optionsData[symbol].byExpiration[expDate]) {
-            this.optionsData[symbol].byExpiration[expDate] = {
-                calls: [],
-                puts: []
-            };
+        if (Array.isArray(data)) {
+            // API returned an array directly
+            optionsArray = data;
+        } else if (data && data.data && Array.isArray(data.data)) {
+            // API returned {data: [...]} format
+            optionsArray = data.data;
+        } else {
+            throw new Error('Invalid options data format received from API');
         }
 
-        // Check for contract_type or type property
-        const contractType = (option.contract_type || option.type || '').toLowerCase();
+        // Store the raw data
+        this.optionsData[symbol] = {
+            raw: optionsArray,
+            byExpiration: {},
+            lastUpdated: new Date(),
+            // Store the original response format for future reference
+            originalResponse: data
+        };
 
-        // Add to the appropriate array based on type
-        if (contractType === 'call') {
-            this.optionsData[symbol].byExpiration[expDate].calls.push(option);
-        } else if (contractType === 'put') {
-            this.optionsData[symbol].byExpiration[expDate].puts.push(option);
+        // Organize options by expiration date
+        optionsArray.forEach(option => {
+            // Check for expiration_date or expiration property
+            const expDate = option.expiration_date || option.expiration;
+
+            if (!this.optionsData[symbol].byExpiration[expDate]) {
+                this.optionsData[symbol].byExpiration[expDate] = {
+                    calls: [],
+                    puts: []
+                };
+            }
+
+            // Check for contract_type or type property
+            const contractType = (option.contract_type || option.type || '').toLowerCase();
+
+            // Add to the appropriate array based on type
+            if (contractType === 'call') {
+                this.optionsData[symbol].byExpiration[expDate].calls.push(option);
+            } else if (contractType === 'put') {
+                this.optionsData[symbol].byExpiration[expDate].puts.push(option);
+            }
+        });
+
+        // Sort options by strike price within each expiration
+        for (const expDate in this.optionsData[symbol].byExpiration) {
+            this.optionsData[symbol].byExpiration[expDate].calls.sort((a, b) =>
+                parseFloat(a.strike_price || a.strike) - parseFloat(b.strike_price || b.strike)
+            );
+
+            this.optionsData[symbol].byExpiration[expDate].puts.sort((a, b) =>
+                parseFloat(a.strike_price || a.strike) - parseFloat(b.strike_price || b.strike)
+            );
         }
-    });
 
-    // Sort options by strike price within each expiration
-    for (const expDate in this.optionsData[symbol].byExpiration) {
-        this.optionsData[symbol].byExpiration[expDate].calls.sort((a, b) =>
-            parseFloat(a.strike_price || a.strike) - parseFloat(b.strike_price || b.strike)
-        );
+        // Calculate summary metrics
+        this.calculateMetrics(symbol);
 
-        this.optionsData[symbol].byExpiration[expDate].puts.sort((a, b) =>
-            parseFloat(a.strike_price || a.strike) - parseFloat(b.strike_price || b.strike)
-        );
+        this.lastUpdated = new Date();
     }
-
-    // Calculate summary metrics
-    this.calculateMetrics(symbol);
-
-    this.lastUpdated = new Date();
-}
 
     /**
      * Calculate summary metrics for the options data
@@ -501,27 +398,6 @@ class OptionsDataManager {
                 }
             });
         }
-    }
-
-    /**
-     * Clear cached data for a symbol
-     * @param {string} symbol - Stock symbol
-     */
-    clearCache(symbol) {
-        if (symbol) {
-            // Clear specific symbol
-            if (this.optionsData[symbol]) {
-                delete this.optionsData[symbol];
-                console.log(`Cleared cache for ${symbol}`);
-            }
-        } else {
-            // Clear all data
-            this.optionsData = {};
-            console.log('Cleared all cached options data');
-        }
-
-        // Update local storage
-        this.saveToCache();
     }
 }
 
