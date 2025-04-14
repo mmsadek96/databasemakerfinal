@@ -7,8 +7,8 @@ import DashboardView from './dashboard.js';
 import StocksView from './stocks.js';
 import IndicatorsView from './indicators.js';
 import CorrelationView from './correlation.js';
-import { optionsView as OptionsView } from './options.js'; // Updated import using named export
 import TranscriptsView from './transcripts.js';
+import { optionsDataManager, optionsUIController, optionsStrategyBuilder } from './options.js';
 import API from './api.js';
 import { debounce } from './utils.js';
 
@@ -45,15 +45,12 @@ const App = {
         StocksView.initialize();
         IndicatorsView.initialize();
         CorrelationView.initialize();
-        OptionsView.initialize();
         TranscriptsView.initialize();
     },
 
     /**
      * Set up navigation between different views
      */
-    // Add this to client/static/js/app.js or update the existing setupNavigation function:
-
     setupNavigation: function() {
         const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
         const viewSections = document.querySelectorAll('.view-section');
@@ -96,8 +93,6 @@ const App = {
     /**
      * Initialize date inputs with default values
      */
-    // In app.js, update the initializeDateInputs function
-
     initializeDateInputs: function() {
         // Get current date
         const today = new Date();
@@ -219,8 +214,6 @@ const App = {
     },
 
     /**
-     * Set up action buttons in search
-     /**
      * Set up action buttons in search results
      */
     setupSearchResultActions: function() {
@@ -359,5 +352,8 @@ const App = {
 
 // Initialize the application when DOM is ready
 document.addEventListener('DOMContentLoaded', () => App.initialize());
+
+// Make the notification system available to other modules
+window.FinancialHub.notification = App.showNotification.bind(App);
 
 export default App;

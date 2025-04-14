@@ -1,44 +1,66 @@
-<div class="row">
-    <div class="col-12">
-        <h2 class="mb-4">Options Chain Data</h2>
-    </div>
-    <div class="col-md-12">
-        <div class="card mb-4">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Options Chain</h5>
-                    <div class="input-group" style="max-width: 400px;">
-                        <input type="text" class="form-control" id="options-symbol" placeholder="Enter symbol">
-                        <div class="input-group-text">
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="checkbox" id="include-greeks">
-                                <label class="form-check-label" for="include-greeks">Include Greeks</label>
+<!-- Options Data View -->
+<div id="options-container" class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Options Chain Data</h2>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Options Chain</h5>
+                        <div class="input-group" style="max-width: 400px;">
+                            <input type="text" class="form-control" id="options-symbol" placeholder="Enter symbol">
+                            <div class="input-group-text">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" id="include-greeks">
+                                    <label class="form-check-label" for="include-greeks">Include Greeks</label>
+                                </div>
                             </div>
+                            <button class="btn btn-primary" type="button" id="load-options-button">Load</button>
                         </div>
-                        <button class="btn btn-primary" type="button" id="load-options-button">Load</button>
                     </div>
                 </div>
-            </div>
-            <div class="card-body">
-                <div id="options-data-container">
-                    <ul class="nav nav-tabs mb-3" id="options-tabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-options" type="button" role="tab" aria-controls="all-options" aria-selected="true">All Expirations</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="options-tabs-content">
-                        <div class="tab-pane fade show active" id="all-options" role="tabpanel" aria-labelledby="all-tab">
-                            <p class="text-muted">Enter a stock symbol to load options data</p>
+                <div class="card-body">
+                    <!-- Loading Indicator -->
+                    <div id="options-loading" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-                        <!-- Other tab panes will be generated dynamically -->
+                        <p class="mt-2">Loading options data...</p>
+                    </div>
+
+                    <!-- Error Display -->
+                    <div id="options-error" class="alert alert-danger d-none">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span id="options-error-message">Error loading options data</span>
+                    </div>
+
+                    <!-- Options Data Container -->
+                    <div id="options-data-container">
+                        <!-- Tabs for Expirations -->
+                        <ul class="nav nav-tabs mb-3" id="options-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-options" type="button" role="tab" aria-controls="all-options" aria-selected="true">All Expirations</button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="options-tabs-content">
+                            <div class="tab-pane fade show active" id="all-options" role="tabpanel" aria-labelledby="all-tab">
+                                <p class="text-muted">Enter a stock symbol to load options data</p>
+                            </div>
+                            <!-- Other tab panes will be generated dynamically -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<template id="options-analytics-template">
+    <!-- Options Analytics Section (Hidden initially) -->
     <div id="options-analytics" class="card mb-4 d-none">
         <div class="card-header bg-dark text-white">
             <h5 class="mb-0">Options Analytics</h5>
@@ -188,9 +210,8 @@
             </div>
         </div>
     </div>
-</template>
 
-<template id="advanced-analysis-template">
+    <!-- Advanced Analysis Section (Hidden initially) -->
     <div id="advanced-analysis" class="d-none">
         <div class="row mb-4">
             <div class="col-12">
@@ -341,169 +362,9 @@
             </div>
         </div>
     </div>
-</template>
+</div>
 
-<template id="options-filters-template">
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Filter Options</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-2">
-                    <label for="filter-moneyness" class="form-label">Moneyness Filter</label>
-                    <select class="form-select" id="filter-moneyness">
-                        <option value="all" selected>All Strikes</option>
-                        <option value="atm">Near At The Money (±5%)</option>
-                        <option value="itm-calls">ITM Calls</option>
-                        <option value="otm-calls">OTM Calls</option>
-                        <option value="itm-puts">ITM Puts</option>
-                        <option value="otm-puts">OTM Puts</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-2">
-                    <label for="filter-min-volume" class="form-label">Minimum Volume</label>
-                    <input type="number" class="form-control" id="filter-min-volume" min="0" value="0">
-                </div>
-                <div class="col-md-4 mb-2">
-                    <label for="filter-min-oi" class="form-label">Minimum Open Interest</label>
-                    <input type="number" class="form-control" id="filter-min-oi" min="0" value="0">
-                </div>
-            </div>
-            <div class="alert alert-info mt-2 mb-0">
-                <i class="bi bi-info-circle me-2"></i>
-                Filters apply instantly as you change values. Use these to focus on specific option characteristics.
-            </div>
-        </div>
-    </div>
-</template>
-
-<template id="option-details-modal-template">
-    <div class="modal fade" id="optionDetailsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="optionDetailsModalLabel">Option Contract Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card border-primary mb-3">
-                                <div class="card-header bg-primary text-white">Contract Details</div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Symbol:</span>
-                                        <span class="fw-bold" id="modal-symbol"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Contract Type:</span>
-                                        <span class="fw-bold" id="modal-contract-type"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Strike Price:</span>
-                                        <span class="fw-bold" id="modal-strike"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Expiration Date:</span>
-                                        <span class="fw-bold" id="modal-expiration"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span>Contract Size:</span>
-                                        <span class="fw-bold">100 shares</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-success mb-3">
-                                <div class="card-header bg-success text-white">Pricing</div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Last Price:</span>
-                                        <span class="fw-bold" id="modal-last-price"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Bid Price:</span>
-                                        <span class="fw-bold" id="modal-bid"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Ask Price:</span>
-                                        <span class="fw-bold" id="modal-ask"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Bid-Ask Spread:</span>
-                                        <span class="fw-bold" id="modal-spread"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span>Contract Value:</span>
-                                        <span class="fw-bold" id="modal-contract-value"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card border-info mb-3">
-                                <div class="card-header bg-info text-white">Volume & Open Interest</div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Volume:</span>
-                                        <span class="fw-bold" id="modal-volume"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Open Interest:</span>
-                                        <span class="fw-bold" id="modal-open-interest"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span>Volume / OI Ratio:</span>
-                                        <span class="fw-bold" id="modal-volume-oi-ratio"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-warning mb-3">
-                                <div class="card-header bg-warning text-dark">Greeks</div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Implied Volatility:</span>
-                                        <span class="fw-bold" id="modal-iv"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Delta:</span>
-                                        <span class="fw-bold" id="modal-delta"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Gamma:</span>
-                                        <span class="fw-bold" id="modal-gamma"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Theta:</span>
-                                        <span class="fw-bold" id="modal-theta"></span>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span>Vega:</span>
-                                        <span class="fw-bold" id="modal-vega"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-center mt-2">
-                        <button class="btn btn-primary me-2" id="option-analyze-btn">
-                            <i class="bi bi-graph-up"></i> Analyze Profit/Loss
-                        </button>
-                        <button class="btn btn-success me-2" id="option-add-strategy-btn">
-                            <i class="bi bi-plus-circle"></i> Add to Strategy
-                        </button>
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
+<!-- Option Details Modal (Will be created dynamically) -->
+<div class="modal fade" id="optionDetailsModal" tabindex="-1" aria-hidden="true">
+    <!-- Modal content will be generated dynamically -->
+</div>

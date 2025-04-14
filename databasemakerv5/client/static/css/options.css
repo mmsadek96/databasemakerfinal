@@ -110,90 +110,17 @@
     font-weight: 600;
 }
 
-/* Sentiment and metrics styling */
-.metric {
-    text-align: center;
-    background-color: #f8f9fa;
-    border-radius: 0.25rem;
-    padding: 1rem;
+/* Metric groups */
+.metric-group {
     margin-bottom: 1rem;
 }
 
-.metric-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.metric-label {
+.metric-group h6 {
     font-size: 0.85rem;
-    color: #6c757d;
-}
-
-/* Strategy builder section */
-#strategy-builder-result {
-    padding: 0.5rem;
-    min-height: 100px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    /* Simplify table on small screens */
-    .options-table {
-        font-size: 0.75rem;
-    }
-    
-    /* Hide less important columns */
-    .options-table th:nth-child(3),
-    .options-table td:nth-child(3),
-    .options-table th:nth-child(4),
-    .options-table td:nth-child(4) {
-        display: none;
-    }
-    
-    /* Stack the filters */
-    #options-filters .col-md-4 {
-        margin-bottom: 1rem;
-    }
-}
-
-/* Options Table Styling */
-.options-table {
-    font-size: 0.875rem;
-    width: 100%;
-    table-layout: fixed;
-}
-
-.options-table th {
-    font-size: 0.8rem;
-    font-weight: 600;
-    vertical-align: middle;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.options-table td {
-    padding: 0.25rem 0.5rem;
-    vertical-align: middle;
-}
-
-/* Call and put styling */
-.call-cell {
-    background-color: rgba(40, 167, 69, 0.05);
-}
-
-.put-cell {
-    background-color: rgba(220, 53, 69, 0.05);
-}
-
-/* Strike column styling */
-.strike-price {
-    font-weight: 600;
-    background-color: #f8f9fa;
-    border-left: 1px solid #dee2e6;
-    border-right: 1px solid #dee2e6;
+    margin-bottom: 0.75rem;
+    color: #495057;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.25rem;
 }
 
 /* Chart containers */
@@ -204,9 +131,83 @@
     margin-bottom: 1.5rem;
 }
 
-/* Metric styling */
-.metric-group h6 {
-    font-size: 0.85rem;
-    margin-bottom: 0.75rem;
-    color: #495057;
+/* Notification styling */
+#cached-data-notification {
+    margin-bottom: 1rem;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading indicator */
+#options-loading {
+    padding: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    /* Simplify table on small screens */
+    .options-table {
+        font-size: 0.75rem;
+    }
+
+    /* Hide less important columns */
+    .options-table th:nth-child(3),
+    .options-table td:nth-child(3),
+    .options-table th:nth-child(4),
+    .options-table td:nth-child(4) {
+        display: none;
+    }
+
+    /* Stack the filters */
+    #options-filters .col-md-4 {
+        margin-bottom: 1rem;
+    }
+
+    /* Adjust chart containers */
+    .chart-container {
+        height: 250px;
+    }
+
+    /* Stack analytics cards */
+    #options-analytics .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Option details modal styling */
+#optionDetailsModal .modal-content {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+#optionDetailsModal .card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+}
+
+#optionDetailsModal .card-header {
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+/* Strategy builder styling */
+#strategy-builder-result .table th {
+    background-color: #f8f9fa;
+}
+
+/* Clickable cells for option details */
+.options-table td.call-cell:first-child,
+.options-table td.put-cell:first-child {
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.options-table td.call-cell:first-child:hover,
+.options-table td.put-cell:first-child:hover {
+    background-color: rgba(0, 123, 255, 0.15);
 }
