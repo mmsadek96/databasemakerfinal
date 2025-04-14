@@ -1,0 +1,163 @@
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Market Overview</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Market Movers</h5>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="marketMoversTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="gainers-tab" data-bs-toggle="tab" data-bs-target="#gainers-tab-pane" type="button" role="tab">Top Gainers</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="losers-tab" data-bs-toggle="tab" data-bs-target="#losers-tab-pane" type="button" role="tab">Top Losers</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="active-tab" data-bs-toggle="tab" data-bs-target="#active-tab-pane" type="button" role="tab">Most Active</button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3" id="marketMoversTabContent">
+                    <div class="tab-pane fade show active" id="gainers-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="gainers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Price</th>
+                                        <th>Change</th>
+                                        <th>% Change</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Loading data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- Add pagination container -->
+                            <div id="gainers-table-pagination" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="losers-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="losers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Price</th>
+                                        <th>Change</th>
+                                        <th>% Change</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Loading data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- Add pagination container -->
+                            <div id="losers-table-pagination" class="mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="active-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="active-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Price</th>
+                                        <th>Change</th>
+                                        <th>% Change</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Loading data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- Add pagination container -->
+                            <div id="active-table-pagination" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Economic Snapshot</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group" id="econ-snapshot">
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" id="econ-inflation">
+                        Inflation
+                        <span class="badge bg-primary rounded-pill">Loading...</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" id="econ-unemployment">
+                        Unemployment
+                        <span class="badge bg-primary rounded-pill">Loading...</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" id="econ-gdp">
+                        GDP Growth
+                        <span class="badge bg-primary rounded-pill">Loading...</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" id="econ-treasury">
+                        10-Year Treasury
+                        <span class="badge bg-primary rounded-pill">Loading...</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Quick Stock Chart</h5>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="input-group" style="max-width: 300px;">
+                        <input type="text" class="form-control" id="quick-chart-symbol" placeholder="Enter symbol (e.g., AAPL)">
+                        <button class="btn btn-primary" type="button" id="quick-chart-button">Go</button>
+                    </div>
+                    <div class="date-range-container">
+                        <div id="quick-chart-date-presets" class="btn-group btn-group-sm me-2"></div>
+                        <div class="input-group input-group-sm" style="max-width: 320px;">
+                            <input type="date" class="form-control form-control-sm" id="stock-start-date">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control form-control-sm" id="stock-end-date">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Add major indices quick buttons -->
+                <div class="d-flex justify-content-center mb-3 major-indices">
+                    <button type="button" class="btn btn-outline-primary me-2" data-symbol="SPY">
+                        <i class="bi bi-graph-up"></i> S&P 500
+                    </button>
+                    <button type="button" class="btn btn-outline-info me-2" data-symbol="QQQ">
+                        <i class="bi bi-graph-up"></i> NASDAQ
+                    </button>
+                    <button type="button" class="btn btn-outline-dark" data-symbol="DIA">
+                        <i class="bi bi-graph-up"></i> DOW
+                    </button>
+                </div>
+                <!-- Add a div with quick-chart-container class -->
+                <div class="quick-chart-container">
+                    <canvas id="quick-stock-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
