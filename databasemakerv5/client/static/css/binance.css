@@ -1,0 +1,139 @@
+/* Financial Intelligence Hub - Binance Module Stylesheet */
+
+.binance-card {
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.binance-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.binance-card .card-header {
+    background-color: #f8f9fa;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.binance-card .card-title {
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+/* Status indicators */
+.status-container {
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.status-container.bg-success-subtle {
+    border-left: 4px solid #28a745;
+}
+
+.status-container.bg-danger-subtle {
+    border-left: 4px solid #dc3545;
+}
+
+/* API key form */
+.api-key-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.api-key-form .input-group-text {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.api-key-form .input-group-text:hover {
+    background-color: #e9ecef;
+}
+
+/* Balances table */
+.binance-balances {
+    margin-top: 1rem;
+}
+
+.binance-balances th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.balances-filter-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.balances-controls {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-control {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.toggle-control .form-check-input {
+    margin-right: 0.5rem;
+}
+
+/* Open orders styling */
+.open-orders th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.open-orders .text-success {
+    color: #28a745 !important;
+}
+
+.open-orders .text-danger {
+    color: #dc3545 !important;
+}
+
+/* Account card */
+.account-info-card {
+    height: 100%;
+}
+
+.account-info-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.account-info-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.account-info-list li:last-child {
+    border-bottom: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .balances-filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .balances-controls {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+
+    .toggle-control {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}

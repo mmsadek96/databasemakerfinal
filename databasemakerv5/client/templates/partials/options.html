@@ -1,0 +1,222 @@
+<!-- Options Data View -->
+<div id="options-container" class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">Options Chain Data</h2>
+      <!-- TEST BUTTONS - Added for debugging -->
+      <div class="mb-3">
+        <button onclick="testOptionsAPI('AAPL')" class="btn btn-sm btn-info">Test AAPL API</button>
+        <button onclick="testOptionsAPI('MSFT')" class="btn btn-sm btn-secondary">Test MSFT API</button>
+        <button onclick="checkElements()" class="btn btn-sm btn-warning">Check Elements</button>
+      </div>
+    </div>
+
+    <!-- Controls Section -->
+    <div class="col-md-12">
+      <div class="card mb-4">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Options Chain</h5>
+            <div class="input-group" style="max-width: 400px;">
+              <input type="text" class="form-control" id="options-symbol" placeholder="Enter symbol">
+              <div class="input-group-text">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" id="include-greeks">
+                  <label class="form-check-label" for="include-greeks">Include Greeks</label>
+                </div>
+              </div>
+              <button class="btn btn-primary" type="button" id="load-options-button" onclick="console.log('Direct button click')">Load</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Diagnostic Info - Added for debugging -->
+          <div id="diagnostic-info" class="mb-3 small text-muted"></div>
+
+          <!-- Loading Indicator -->
+          <div id="options-loading" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading options data...</p>
+          </div>
+
+          <!-- Error Display -->
+          <div id="options-error" class="alert alert-danger d-none">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span id="options-error-message">Error loading options data</span>
+          </div>
+
+          <!-- Options Data Container -->
+          <div id="options-data-container">
+            <!-- Expiration Date Selector -->
+            <div class="d-flex justify-content-between align-items-center mb-3 d-none" id="expiration-selector">
+              <h4><span id="symbol-display"></span> Options</h4>
+              <div class="d-flex align-items-center">
+                <label for="expiration-select" class="me-2">Expiration:</label>
+                <select id="expiration-select" class="form-select form-select-sm" style="min-width: 150px;"></select>
+              </div>
+            </div>
+
+            <!-- Options Table -->
+            <div id="options-table-container" class="table-responsive d-none"></div>
+
+            <!-- Expiration Details -->
+            <div id="expiration-details" class="mt-3 d-none">
+              <span class="badge bg-info">Expiration: <span id="current-expiration"></span></span>
+            </div>
+
+            <!-- Options Calculations Container - Will be populated by the calculation module -->
+            <div id="options-calculations-container" class="mt-4 d-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Option Details Modal -->
+<div class="modal fade" id="optionDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">Option Contract Details</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="option-details-content">
+        <!-- Option details will be populated here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OpenAI SDK for options suggestions -->
+<!-- Load in this order -->
+<script src="/static/js/modules/options/options-table.js"></script>
+<script src="/static/js/modules/options/options-calculation.js"></script>
+<script src="/static/js/modules/options/options-suggestion.js"></script>
+<script src="/static/js/modules/options/options.js"></script>
+
+<!-- Add some custom styles for the options calculations -->
+<style>
+  /* Options calculations styles */
+  #options-calculations-container .card {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  #options-calculations-container .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  #options-calculations-container .card-header {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+
+  #options-calculations-container table {
+    margin-bottom: 0;
+  }
+
+  #options-calculations-container td:first-child {
+    font-weight: 500;
+  }
+
+  #options-calculations-container .table-info {
+    background-color: rgba(0, 123, 255, 0.05);
+  }
+</style>
+
+<!-- Diagnostic Scripts - Added for debugging -->
+<script>
+  // Run diagnostics when options view is shown
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(runDiagnostics, 1000);
+  });
+
+  function runDiagnostics() {
+    const info = document.getElementById('diagnostic-info');
+    if (!info) return;
+
+    // Check if scripts are loaded
+    const diagnosticInfo = [
+      `Options JS loaded: ${typeof OptionsController !== 'undefined'}`,
+      `Options Table JS loaded: ${typeof OptionsTable !== 'undefined'}`,
+      `Load button exists: ${!!document.getElementById('load-options-button')}`,
+      `Symbol input exists: ${!!document.getElementById('options-symbol')}`,
+      `Current view active: ${document.getElementById('options-view').classList.contains('active')}`,
+      `Browser: ${navigator.userAgent}`,
+      `OpenAI SDK loaded: ${typeof OpenAI !== 'undefined'}`  // Added to check if OpenAI SDK is loaded
+    ].join('<br>');
+
+    info.innerHTML = diagnosticInfo;
+  }
+
+  function testOptionsAPI(symbol) {
+    console.log(`Testing options API for ${symbol}...`);
+    const apiUrl = `/api/options/${symbol}?require_greeks=false`;
+    console.log('Fetching from URL:', apiUrl);
+
+    // Show request in progress
+    const info = document.getElementById('diagnostic-info');
+    if (info) info.innerHTML += `<br>Testing API: ${apiUrl}...`;
+
+    fetch(apiUrl)
+      .then(response => {
+        console.log('API response status:', response.status);
+        return response.json();
+      })
+      .then(data => {
+        console.log('API data received:', data);
+        if (info) info.innerHTML += `<br>API request successful! Got ${data.length} contracts.`;
+
+        // Auto-populate the form
+        const symbolInput = document.getElementById('options-symbol');
+        if (symbolInput) symbolInput.value = symbol;
+      })
+      .catch(error => {
+        console.error('API error:', error);
+        if (info) info.innerHTML += `<br>API Error: ${error.message}`;
+      });
+  }
+
+  function checkElements() {
+    console.log('Checking DOM elements...');
+
+    // Core elements needed for options functionality
+    const elementsToCheck = [
+      'options-symbol',
+      'include-greeks',
+      'load-options-button',
+      'options-loading',
+      'options-error',
+      'options-error-message',
+      'options-table-container',
+      'expiration-selector',
+      'expiration-select'
+    ];
+
+    const results = elementsToCheck.map(id => {
+      const element = document.getElementById(id);
+      return { id, exists: !!element };
+    });
+
+    console.table(results);
+
+    // Check if scripts are loaded
+    console.log('OptionsController loaded:', typeof OptionsController !== 'undefined');
+    console.log('OptionsTable loaded:', typeof OptionsTable !== 'undefined');
+    console.log('OpenAI SDK loaded:', typeof OpenAI !== 'undefined'); // Added check for OpenAI
+
+    // Display in the UI
+    const info = document.getElementById('diagnostic-info');
+    if (info) {
+      info.innerHTML += '<br><strong>Element check:</strong><br>' +
+        results.map(r => `${r.id}: ${r.exists ? '✓' : '✗'}`).join('<br>');
+    }
+  }
+</script>

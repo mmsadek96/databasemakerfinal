@@ -1,0 +1,144 @@
+/* Financial Intelligence Hub - Charts Styling */
+
+
+
+.chart-container {
+    position: relative;
+    height: 300px; /* Reduced from 400px */
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+/* Quick chart container (smaller height) */
+.quick-chart-container {
+    height: 240px; /* Reduced from 300px */
+}
+
+/* Chart legends */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 0.5rem;
+    font-size: 0.85rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.25rem;
+}
+
+/* Chart tooltips - extend Chart.js default styling */
+.chartjs-tooltip {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    position: absolute;
+    z-index: 10;
+}
+
+/* Candlestick styling */
+.candlestick-up {
+    fill: rgba(40, 167, 69, 0.2);
+    stroke: #28a745;
+}
+
+.candlestick-down {
+    fill: rgba(220, 53, 69, 0.2);
+    stroke: #dc3545;
+}
+
+/* Chart controls */
+.chart-controls {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.date-range-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Major indices buttons */
+.major-indices {
+    margin-bottom: 1.25rem;
+}
+
+.major-indices .btn {
+    padding: 0.4rem 1rem;
+    margin: 0 0.25rem;
+}
+
+.major-indices .btn.active {
+    font-weight: 600;
+}
+
+/* Chart overlays */
+.chart-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(248, 249, 250, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    border-radius: 0.25rem;
+}
+
+/* Correlation heatmap specific styles */
+.correlation-table {
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.correlation-table th {
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.correlation-table td {
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.correlation-legend {
+    font-size: 0.8rem;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.correlation-legend .badge {
+    width: 30px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+/* Sentiment trend charts */
+.sentiment-chart {
+    height: 100px;
+    margin: 1.5rem 0;
+}

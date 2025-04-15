@@ -1,0 +1,212 @@
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Binance Trading Bot Connection</h2>
+        <p class="text-muted">Connect your trading bot to your Binance account by configuring API keys and IP restrictions.</p>
+    </div>
+</div>
+
+<!-- Connection Status -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div id="binance-status-container" class="status-container bg-danger-subtle">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">Connection Status: <span id="binance-connection-status" class="text-danger">Not Connected</span></h5>
+                    <p class="mb-0" id="binance-connection-message">Please configure your Binance API credentials to connect.</p>
+                </div>
+                <button class="btn btn-primary" id="test-binance-connection">
+                    <i class="bi bi-lightning-charge"></i> Test Connection
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Configuration -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card binance-card">
+            <div class="card-header">
+                <h5 class="card-title">API Configuration</h5>
+            </div>
+            <div class="card-body">
+                <div class="api-key-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="binance-api-key" class="form-label">API Key</label>
+                                <input type="text" class="form-control" id="binance-api-key" placeholder="Enter your Binance API key">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="binance-api-secret" class="form-label">API Secret</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="binance-api-secret" placeholder="Enter your Binance API secret">
+                                    <span class="input-group-text" id="toggle-api-secret">
+                                        <i class="bi bi-eye"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="binance-allowed-ips" class="form-label">Allowed IP Addresses</label>
+                        <input type="text" class="form-control" id="binance-allowed-ips" placeholder="Enter comma-separated IP addresses (e.g., 123.123.123.123, 124.124.124.124)">
+                        <div class="form-text text-muted">Leave empty if no IP restrictions are set.</div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-primary" id="save-binance-credentials">
+                            <i class="bi bi-save"></i> Save Credentials
+                        </button>
+                        <div class="form-text text-muted mt-2">
+                            <i class="bi bi-info-circle"></i> Your API keys are securely stored and never shared with third parties.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Information -->
+<div id="binance-account-panel" class="row mb-4 d-none">
+    <div class="col-md-8">
+        <div class="card binance-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">Account Balances</h5>
+                <button class="btn btn-sm btn-outline-secondary" id="refresh-account-data">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="balances-filter-container">
+                    <div class="search-container">
+                        <input type="text" class="form-control" id="filter-balances" placeholder="Filter assets...">
+                    </div>
+                    <div class="balances-controls">
+                        <div class="toggle-control">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="toggle-zero-balances">
+                                <label class="form-check-label" for="toggle-zero-balances">
+                                    Show zero balances
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive binance-balances">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th class="text-end">Free</th>
+                                <th class="text-end">Locked</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="binance-balances-body">
+                            <tr>
+                                <td colspan="4" class="text-center">Loading account data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card binance-card account-info-card">
+            <div class="card-header">
+                <h5 class="card-title">Account Summary</h5>
+            </div>
+            <div class="card-body">
+                <div id="binance-account-summary">
+                    <p class="text-center">Loading account details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Open Orders -->
+<div id="binance-orders-panel" class="row mb-4 d-none">
+    <div class="col-md-12">
+        <div class="card binance-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">Open Orders</h5>
+                <button class="btn btn-sm btn-outline-secondary" id="refresh-open-orders">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive open-orders">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Side</th>
+                                <th>Type</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Quantity</th>
+                                <th class="text-end">Filled</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="binance-orders-body">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading open orders...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instructions Card -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card binance-card">
+            <div class="card-header">
+                <h5 class="card-title">How to Setup Your Binance API Connection</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Follow these steps to securely connect your trading bot to your Binance account.
+                </div>
+
+                <h6 class="mt-3">1. Create API Keys on Binance</h6>
+                <ol class="mb-4">
+                    <li>Log in to your Binance account</li>
+                    <li>Navigate to "API Management" in your account settings</li>
+                    <li>Click "Create API" and complete the security verification</li>
+                    <li>Set an appropriate label for your API key (e.g., "Trading Bot")</li>
+                    <li>Enable reading information and spot & margin trading permissions</li>
+                    <li>Do NOT enable withdrawal permission unless absolutely necessary</li>
+                </ol>
+
+                <h6>2. Set Up IP Restrictions (Highly Recommended)</h6>
+                <ol class="mb-4">
+                    <li>Determine your server's IP address or your static IP</li>
+                    <li>Enter this IP in the "Restrict access to trusted IPs only" section</li>
+                    <li>For multiple IPs, separate them with commas in the Allowed IP Addresses field</li>
+                    <li>Note: If your IP is dynamic, you'll need to update the restrictions when it changes</li>
+                </ol>
+
+                <h6>3. Save and Test Your Configuration</h6>
+                <ol class="mb-4">
+                    <li>Enter your API key and secret in the fields above</li>
+                    <li>Click "Save Credentials" to store your API information</li>
+                    <li>Test the connection to ensure everything is working properly</li>
+                    <li>Begin monitoring your account balances and orders</li>
+                </ol>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-shield-exclamation"></i> <strong>Security Notice:</strong> Never share your API keys with anyone. If you suspect your keys have been compromised, immediately delete them on Binance and create new ones.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
