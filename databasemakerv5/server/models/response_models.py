@@ -116,3 +116,77 @@ class TradingPairResponse(BaseModel):
     baseAsset: str
     quoteAsset: str
     filters: List[Dict[str, Any]]
+
+# server/models/response_models.py - Add these models to your existing file
+
+class IBKRAccountSummaryResponse(BaseModel):
+    """Response model for IBKR account summary"""
+    account_id: str
+    account_title: str
+    account_type: str
+    net_liquidation_value: float
+    cash_balance: float
+    available_funds: float
+    maintenance_margin: float
+    initial_margin: float
+    currency: str
+    equity_with_loan: float
+    excess_liquidity: float
+    day_trades_remaining: int
+    buying_power: float
+
+class IBKRPositionResponse(BaseModel):
+    """Response model for IBKR position"""
+    symbol: str
+    contract_id: str
+    asset_class: str
+    position: float
+    market_price: float
+    market_value: float
+    average_cost: float
+    unrealized_pnl: float
+    realized_pnl: float
+    currency: str
+    exchange: str
+
+class IBKROrderResponse(BaseModel):
+    """Response model for IBKR order"""
+    order_id: str
+    symbol: str
+    contract_id: str
+    action: str
+    order_type: str
+    quantity: float
+    price: Optional[float] = None
+    time_in_force: str
+    status: str
+    submitted_time: str
+    filled_quantity: float
+    average_fill_price: Optional[float] = None
+    remaining_quantity: float
+    last_update_time: str
+
+class IBKRTradeResponse(BaseModel):
+    """Response model for IBKR trade"""
+    trade_id: str
+    symbol: str
+    contract_id: str
+    action: str
+    quantity: float
+    price: float
+    time: str
+    commission: float
+    realized_pnl: Optional[float] = None
+    currency: str
+    exchange: str
+
+class IBKRPerformanceResponse(BaseModel):
+    """Response model for IBKR account performance"""
+    time_period: str
+    starting_value: float
+    ending_value: float
+    time_weighted_return: float
+    deposits_withdrawals: float
+    change_in_value: float
+    returns_by_asset_class: Dict[str, float]
+    returns_by_sector: Dict[str, float]

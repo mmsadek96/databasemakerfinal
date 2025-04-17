@@ -7,7 +7,7 @@ import uvicorn
 import os
 from pydantic import BaseModel
 from server.services.openai_options import router as openai_options_router
-from server.api.routes import stocks, indicators, options, correlation, transcripts, settings, binance
+from server.api.routes import stocks, indicators, options, correlation, transcripts, settings, binance, ibkr
 from server.config.settings import get_settings
 
 # Initialize FastAPI app
@@ -42,6 +42,8 @@ app.include_router(transcripts.router)
 app.include_router(settings.router)
 app.include_router(openai_options_router)
 app.include_router(binance.router)  # Add the new Binance router
+app.include_router(ibkr.router)  # Added IBKR router
+
 
 
 

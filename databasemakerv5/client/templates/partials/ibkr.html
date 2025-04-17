@@ -1,0 +1,273 @@
+<!-- client/templates/partials/ibkr.html -->
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2>Interactive Brokers Integration</h2>
+        <button id="refresh-ibkr-data" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+        </button>
+    </div>
+</div>
+
+<!-- Account Summary Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">Account Summary</h5>
+            </div>
+            <div class="card-body" id="account-summary">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading account data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio and Performance Row -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">Portfolio Positions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="positions-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Quantity</th>
+                                <th>Avg Cost</th>
+                                <th>Market Price</th>
+                                <th>Market Value</th>
+                                <th>Unrealized P&L</th>
+                                <th>% Return</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">Performance</h5>
+                <div>
+                    <select id="performance-period" class="form-select form-select-sm">
+                        <option value="1D">1 Day</option>
+                        <option value="1W">1 Week</option>
+                        <option value="1M">1 Month</option>
+                        <option value="3M">3 Months</option>
+                        <option value="6M">6 Months</option>
+                        <option value="1Y">1 Year</option>
+                        <option value="YTD" selected>Year-to-Date</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body" id="performance-card">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Loading performance data...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders and Trades Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">Orders</h5>
+                <div>
+                    <select id="orders-filter" class="form-select form-select-sm">
+                        <option value="active" selected>Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="canceled">Canceled</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Action</th>
+                                <th>Quantity</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <button id="open-place-order-modal" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Place New Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title">Trade History</h5>
+                <div>
+                    <select id="trade-history-days" class="form-select form-select-sm">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Symbol</th>
+                                <th>Action</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Commission</th>
+                                <th>P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Market Data Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title">Market Data & Symbol Search</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6 mx-auto">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="ibkr-symbol-input" placeholder="Enter symbol or company name...">
+                            <button class="btn btn-primary" type="button" id="ibkr-search-button">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="symbol-search-results">
+                    <!-- Search results will be displayed here -->
+                    <div class="text-center text-muted">
+                        <i class="bi bi-search"></i>
+                        <p>Enter a symbol or company name to search</p>
+                    </div>
+                </div>
+
+                <div id="market-data-container" class="mt-4">
+                    <!-- Market data will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Place Order Modal -->
+<div class="modal fade" id="place-order-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Place Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="place-order-form">
+                    <input type="hidden" id="order-contract-id">
+
+                    <div class="mb-3">
+                        <label for="order-symbol" class="form-label">Symbol</label>
+                        <input type="text" class="form-control" id="order-symbol" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="order-action" class="form-label">Action</label>
+                        <select class="form-select" id="order-action" required>
+                            <option value="BUY">Buy</option>
+                            <option value="SELL">Sell</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="order-quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="order-quantity" min="1" step="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="order-type" class="form-label">Order Type</label>
+                        <select class="form-select" id="order-type" required>
+                            <option value="MKT">Market</option>
+                            <option value="LMT">Limit</option>
+                            <option value="STP">Stop</option>
+                            <option value="STP_LMT">Stop Limit</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="limit-price-group">
+                        <label for="order-price" class="form-label">Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="order-price" min="0.01" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="order-time-in-force" class="form-label">Time in Force</label>
+                        <select class="form-select" id="order-time-in-force" required>
+                            <option value="DAY">Day</option>
+                            <option value="GTC">Good Till Canceled</option>
+                            <option value="IOC">Immediate or Cancel</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="place-order-btn">Place Order</button>
+            </div>
+        </div>
+    </div>
+</div>

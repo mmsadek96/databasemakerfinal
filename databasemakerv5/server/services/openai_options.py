@@ -106,38 +106,55 @@ class OpenAIOptionsService:
 
             # Create the prompt for OpenAI
             prompt = f"""
-Analyze the following options data for {symbol} with expiration on {expiration_date} ({days_to_expiration} days from now) and provide trading suggestions.
+            Analyze the following options data for {symbol} with expiration on {expiration_date} ({days_to_expiration} days from now) and provide trading suggestions. The current stock price is ${stock_price:.2f}.
 
-Current stock price: ${stock_price:.2f}
+            Portfolio Details:
+            - Net Liquidation Value: $5000
+            - Buying Power: $35000
+            - Broker: IBKR
+            - Trading Profile: Top-level hedge fund management with an aggressive stance but strict risk management, capital allocation protocols, and advanced liquidity considerations.
 
-## Options Analytics Summary:
-{formatted_results}
+            ## Options Analytics Summary:
+            {formatted_results}
 
-## Request:
-Based on this options data, please provide:
+            ## Request:
+            Based on the above options data and portfolio specifications, please provide a comprehensive analysis including:
 
-1. A brief market outlook for {symbol} based on the options metrics (implied volatility, skew, put-call ratio, etc.)
-2. 3-4 specific options trading strategies that might be appropriate given this data, including specific strikes and expirations where relevant
-3. Risk factors to consider
-4. One contrarian perspective that goes against the prevailing sentiment in these options
+            1. **Market Outlook:**  
+               A concise yet detailed market outlook for {symbol} that interprets key options metrics such as implied volatility, skew, and the put-call ratio, and considers liquidity and execution risks. Include commentary on potential market catalysts or technical trends if available.
 
-Format your response as JSON with the following structure:
-{{
-  "summary": "A one-sentence summary of your analysis",
-  "marketOutlook": "Paragraph describing what the options data suggests about market sentiment and expectations",
-  "strategies": [
-    {{
-      "name": "Name of strategy",
-      "description": "Detailed explanation with specific strikes, premiums, and potential returns"
-    }},
-    ...
-  ],
-  "risks": ["Risk factor 1", "Risk factor 2", ...],
-  "contrarian": "The contrarian perspective"
-}}
+            2. **Trading Strategies:**  
+               Propose 3-4 specific options trading strategies tailored to an aggressive portfolio constrained by a $5000 net liquidation value and $35000 buying power. For each strategy, include:
+               - The strategy's name and rationale.
+               - Specific strikes, expiration details, premium levels, and expected option Greeks (delta, gamma, vega, theta).
+               - Recommended position sizes and capital allocation (e.g., as a percentage of buying power or absolute dollar value).
+               - Expected potential returns and adjustments to manage risk (e.g., stop-loss or exit targets).
+               - Considerations regarding liquidity (bid-ask spreads, open interest, etc.) to ensure efficient execution.
 
-Be specific and quantitative where possible, mentioning exact strikes, premiums, and potential returns. Ensure your analysis is balanced, highlighting both potential rewards and risks.
-"""
+            3. **Risk Factors:**  
+               Provide a detailed list of risk factors to consider, including market risk, volatility risk, liquidity risk, and risks specific to the current portfolio composition. Quantify these risks if possible (for example, expected loss percentages or variance in returns under adverse scenarios).
+
+            4. **Contrarian Perspective:**  
+               Present one contrarian view that challenges the prevailing options sentiment. Support this perspective with quantitative analysis, comparing expected returns and risk/reward profiles with the consensus view. Include a discussion of potential adjustments if market conditions deviate from expected outcomes.
+
+            Please format your response as a JSON object with the following structure:
+            {{
+              "summary": "A one-sentence overview of your analysis",
+              "marketOutlook": "A detailed paragraph discussing the market sentiment derived from the options metrics, including insights on liquidity, volatility, and potential market catalysts",
+              "strategies": [
+                {{
+                  "name": "Strategy Name",
+                  "description": "A detailed explanation including specific strikes, premiums, option Greeks, expected returns, recommended position sizes, and trade adjustment guidelines that align with a $5000 net liquidation and $35000 buying power profile"
+                }},
+                ... (list additional strategies as needed)
+              ],
+              "risks": ["Risk factor 1", "Risk factor 2", ...],
+              "contrarian": "A contrarian perspective with supporting quantitative details, expected risk/reward trade-offs, and scenario analysis of potential market divergences"
+            }}
+
+            Your analysis should be highly specific, quantitative, and include detailed scenario and exit strategy considerations, reflecting both advanced trading methodologies and a deep awareness of the portfolio’s constraints and market execution risks.
+            """
+
             # Log the full prompt
             logger.info("===== COMPLETE PROMPT TO OPENAI =====")
             logger.info(prompt)
@@ -145,7 +162,7 @@ Be specific and quantitative where possible, mentioning exact strikes, premiums,
             # Call the OpenAI API
             logger.info("Calling OpenAI API...")
             response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Use a compatible model
+                model="gpt-4o",  # Use a compatible model
                 messages=[
                     {"role": "system",
                      "content": "You are a professional options trader with 20 years of experience. Provide analysis and trading suggestions based on options data."},

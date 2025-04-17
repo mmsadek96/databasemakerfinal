@@ -21,6 +21,23 @@ async def get_stock_data(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+@router.get("/{symbol}/intraday", response_model=List[StockDataResponse])
+async def get_stock_intraday(
+    symbol: str,
+    interval: str = Query("5min", description="Time interval (1min, 5min, 15min, 30min, 60min)"),
+    stock_service: StockService = Depends()
+):
+    """
+    Get intraday stock price data for a given symbol
+    """
+    try:
+        stock_data = await stock_service.get_stock_intraday(symbol, interval)
+        return stock_data
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+
 @router.get("/search/{keywords}", response_model=List[dict])
 async def search_symbols(
     keywords: str,

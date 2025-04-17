@@ -27,6 +27,25 @@ class StockService:
             logger.error(f"Error searching symbols: {e}")
             raise ValueError(f"Failed to search symbols: {str(e)}")
 
+    async def get_stock_intraday(self, symbol: str, interval: str = "5min") -> List[Dict[str, Any]]:
+        """Get intraday stock price data for a given symbol"""
+        try:
+            df = await self.client.get_time_series_intraday(symbol, interval)
+
+            if df.empty:
+                raise ValueError(f"No intraday data found for symbol: {symbol}")
+
+            # Convert to dictionary for JSON response
+            df.reset_index(inplace=True)
+            df.rename(columns={'index': 'date'}, inplace=True)
+            df['date'] = df['date'].dt.strftime('%Y-%m-%d %H:%M:%S')  # Format dates as strings
+            result = df.to_dict(orient='records')
+
+            return result
+        except Exception as e:
+            logger.error(f"Error getting intraday stock data for {symbol}: {e}")
+            raise ValueError(f"Failed to get intraday stock data: {str(e)}")
+
     async def get_stock_data(self, symbol: str, start_date: Optional[str] = None,
                              end_date: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get stock price data for a given symbol"""

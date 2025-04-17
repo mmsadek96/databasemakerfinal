@@ -217,7 +217,7 @@ const API = {
      * @returns {Promise<Object[]>} - Promise resolving to open orders
      */
     async getBinanceOpenOrders(symbol = null) {
-        return this.get('/api/binance/open-orders', symbol ? { symbol } : {});
+        return this.get('/api/binance/open-orders', symbol ? {symbol} : {});
     },
 
     /**
@@ -236,26 +236,78 @@ const API = {
         return this.get('/api/binance/ip-status');
     },
 
-
+    // IBKR API Methods
 
     /**
-     * Get current API key
-     * @returns {Promise<Object>} - Promise resolving to API key
+     * Get IBKR account summary
+     * @returns {Promise<Object>} - Promise resolving to account summary data
      */
-    async getApiKey() {
-        return this.get('/api/apikey');
+    async getIBKRAccountSummary() {
+        return this.get('/api/ibkr/account/summary');
     },
 
     /**
-     * Update API key
-     * @param {string} apiKey - New API key
-     * @returns {Promise<Object>} - Promise resolving to result
+     * Get IBKR positions
+     * @returns {Promise<Object[]>} - Promise resolving to positions data
      */
-    async updateApiKey(apiKey) {
-        return this.post('/api/apikey', {
-            apikey: apiKey
-        });
-    }
-};
+    async getIBKRPositions() {
+        return this.get('/api/ibkr/positions');
+    },
+
+    /**
+     * Get IBKR orders
+     * @param {string} status - Order status filter (active, completed, canceled)
+     * @returns {Promise<Object[]>} - Promise resolving to orders data
+     */
+    async getIBKROrders(status = 'active') {
+        return this.get('/api/ibkr/orders', {status});
+    },
+
+    /**
+     * Get IBKR trade history
+     * @param {number} days - Number of days of history
+     * @returns {Promise<Object[]>} - Promise resolving to trade history data
+     */
+    async getIBKRTradeHistory(days = 30) {
+        return this.get('/api/ibkr/trades', {days});
+    },
+
+    /**
+     * Place IBKR order
+     * @param {Object} orderData - Order details
+     * @returns {Promise<Object>} - Promise resolving to order result
+     */
+    async placeIBKROrder(orderData) {
+        return this.post('/api/ibkr/orders', orderData);
+    },
+
+    /**
+     * Get IBKR account performance
+     * @param {string} period - Time period (1D, 1W, 1M, 3M, 6M, 1Y, YTD)
+     * @returns {Promise<Object>} - Promise resolving to performance data
+     */
+    async getIBKRPerformance(period = 'YTD') {
+        return this.get('/api/ibkr/performance', {period});
+    },
+
+    /**
+     * Search IBKR symbols
+     * @param {string} query - Search query
+     * @returns {Promise<Object[]>} - Promise resolving to search results
+     */
+    async searchIBKRSymbols(query) {
+        return this.get('/api/ibkr/search', {query});
+    },
+
+    /**
+     * Get IBKR market data
+     * @param {string[]} symbols - Symbol IDs
+     * @param {string[]} fields - Data fields to retrieve
+     * @returns {Promise<Object>} - Promise resolving to market data
+     */
+    async getIBKRMarketData(symbols, fields) {
+        return this.get('/api/ibkr/market-data', {symbols, fields});
+    },
+}
 
 export default API;

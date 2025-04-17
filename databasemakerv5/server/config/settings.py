@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = Field(..., env="OPENAI_API_KEY")
     MONGODB_PASSWORD: str = Field(..., env="MONGODB_PASSWORD")
 
+    # IBKR API Settings
+    IBKR_API_KEY: str = Field("", env="IBKR_API_KEY")
+    IBKR_API_URL: str = Field("https://api.ibkr.com/v1/api", env="IBKR_API_URL")
+    IBKR_ACCOUNT_ID: str = Field("", env="IBKR_ACCOUNT_ID")
+
     class Config:
         env_file = ".env"
         case_sensitive = True

@@ -88,7 +88,8 @@ class AlphaVantageClient:
         params = {
             'function': 'TIME_SERIES_DAILY_ADJUSTED',
             'symbol': symbol,
-            'outputsize': 'full'
+            'outputsize': 'full',
+            'entitlement': 'realtime'
         }
 
         data = await self._make_request(params)

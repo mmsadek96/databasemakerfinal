@@ -10,6 +10,8 @@ import CorrelationView from './correlation.js';
 import TranscriptsView from './transcripts.js';
 import OptionsView from './options.js';
 import BinanceView from './binance.js';
+import IBKRView from './ibkr.js'; // Import IBKR view
+
 
 
 import API from './api.js';
@@ -50,6 +52,7 @@ const App = {
         CorrelationView.initialize();
         TranscriptsView.initialize();
         OptionsView.initialize();
+        IBKRView.initialize();
         BinanceView.initialize();
     },
 

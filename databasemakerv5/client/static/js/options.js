@@ -154,30 +154,34 @@ const OptionsController = {
       });
   },
 
-// Fetch real stock price from Alpha Vantage
-fetchRealStockPrice: function(symbol) {
-  return fetch(`/api/stock/${symbol}?limit=1`)
-    .then(response => {
-      if (!response.ok) {
-        console.warn(`Stock price fetch failed with status ${response.status}, will use estimated price`);
-        return null; // We'll handle this gracefully and fall back to estimation
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data && data.length > 0) {
-        // Get the latest price from the response
-        return parseFloat(data[0].close);
-      } else {
-        console.warn('No stock price data received, will use estimated price');
-        return 0; // Will trigger fallback to estimation
-      }
-    })
-    .catch(error => {
-      console.warn('Error fetching real stock price:', error);
-      return 0; // Will trigger fallback to estimation
-    });
-},
+  // Fetch real stock price from Alpha Vantage
+  fetchRealStockPrice: function(symbol) {
+    // Use intraday endpoint instead of daily
+    return fetch(`/api/stock/${symbol}/`)
+      .then(response => {
+        if (!response.ok) {
+          console.warn(`Stock price fetch failed with status ${response.status}, will use estimated price`);
+          return null;
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          // Get the latest price from the response
+          const latestData = data[data.length - 1];
+          console.log("Real intraday stock data received:", latestData);
+          return parseFloat(latestData.close);
+        } else {
+          console.warn('No stock price data received, will use estimated price');
+          return 0;
+        }
+      })
+      .catch(error => {
+        console.warn('Error fetching real stock price:', error);
+        return 0;
+      });
+  },
+
   // Run options calculations after table is displayed
   runOptionsCalculations: function(symbol, data) {
     // Check if we have the module loaded
