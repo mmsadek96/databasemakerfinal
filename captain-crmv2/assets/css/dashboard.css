@@ -1,0 +1,406 @@
+/* Main Dashboard Layout */
+.captain-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.dashboard-navigation {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #eaeaea;
+}
+
+.dashboard-tabs {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dashboard-tabs .tab-item {
+    padding: 12px 20px;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    font-weight: 500;
+}
+
+.dashboard-tabs .tab-item:hover {
+    background-color: #f5f5f5;
+}
+
+.dashboard-tabs .tab-item.active {
+    background-color: #2b6cb0;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Booking and Schedule Filters */
+.booking-filters,
+.schedule-filters {
+    margin-bottom: 20px;
+}
+
+.filter-button {
+    padding: 8px 15px;
+    margin-right: 10px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.filter-button:hover {
+    background: #eaeaea;
+}
+
+.filter-button.active {
+    background: #4299e1;
+    color: white;
+    border-color: #4299e1;
+}
+
+/* Item Cards (Bookings, Contracts, etc.) */
+.booking-item,
+.assignment-item,
+.contract-item,
+.payment-item {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.booking-item h3,
+.assignment-item h3,
+.contract-item h3,
+.payment-item h3 {
+    margin-top: 0;
+    color: #2b6cb0;
+}
+
+.button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.button:hover {
+    background: #3182ce;
+}
+
+/* Profile Section */
+.client-profile,
+.employee-profile {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+    margin-bottom: 20px;
+}
+
+.profile-edit-form {
+    background: #f9f9ff;
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+
+.form-field {
+    margin-bottom: 15px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.update-button {
+    background: #38a169;
+    margin-right: 10px;
+}
+
+.update-button:hover {
+    background: #2f855a;
+}
+
+.cancel-button {
+    background: #e53e3e;
+}
+
+.cancel-button:hover {
+    background: #c53030;
+}
+
+/* Loading & Error Messages */
+.loading {
+    padding: 10px;
+    color: #4299e1;
+}
+
+.error {
+    color: #e53e3e;
+}
+
+.success {
+    color: #38a169;
+}
+
+/* Tip System */
+.request-tip-btn {
+    background: #38a169;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.request-tip-btn:hover {
+    background: #2f855a;
+}
+
+.copy-tip-link {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.copy-tip-link:hover {
+    background: #3182ce;
+}
+
+.tip-status {
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.tip-status.success {
+    color: #38a169;
+}
+
+.tip-status.pending {
+    color: #ed8936;
+}
+
+.tip-button {
+    background: #38a169;
+    margin-left: 10px;
+}
+
+.tip-button:hover {
+    background: #2f855a;
+}
+
+/* Tip Payment Page */
+.captain-tip-payment {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+.service-details {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.tip-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.tip-options label {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tip-options label:hover {
+    border-color: #4299e1;
+}
+
+.custom-amount {
+    margin-bottom: 20px;
+}
+
+.custom-amount input {
+    width: 150px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.payment-details {
+    margin-bottom: 20px;
+}
+
+.payment-methods {
+    margin-bottom: 15px;
+}
+
+.form-row {
+    margin-bottom: 15px;
+}
+
+.half-width {
+    width: 48%;
+    display: inline-block;
+}
+
+.card-details input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.submit-tip-btn {
+    background: #38a169;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.submit-tip-btn:hover {
+    background: #2f855a;
+}
+
+#payment-response .error {
+    color: #e53e3e;
+}
+
+#payment-response .success {
+    color: #38a169;
+}
+
+#payment-response .processing {
+    color: #4299e1;
+}
+
+/* Rank System */
+.rank-display {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.rank-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.rank-gold {
+    background-color: #FFD700;
+    color: #000;
+}
+
+.rank-silver {
+    background-color: #C0C0C0;
+    color: #000;
+}
+
+.rank-bronze {
+    background-color: #CD7F32;
+}
+
+.rank-standard {
+    background-color: #6c757d;
+}
+
+.rank-benefits, 
+.rank-improvement {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.rank-benefits h5,
+.rank-improvement h5 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.rank-benefits ul,
+.rank-improvement ul {
+    padding-left: 20px;
+    margin-bottom: 0;
+}
+
+.rank-benefits li,
+.rank-improvement li {
+    margin-bottom: 5px;
+}
+
+/* Earnings Summary */
+.earnings-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 30px;
+    border: 1px solid #e9ecef;
+}
+
+.earnings-summary h3 {
+    margin-top: 0;
+    color: #2b6cb0;
+}

@@ -1,0 +1,110 @@
+/* Admin styles for Captain CRM */
+.invoice-actions {
+    padding: 10px 0;
+}
+
+.client-info {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Dashboard widgets */
+.captain-dashboard-widget .widefat {
+    margin-bottom: 10px;
+}
+
+/* Report page styles */
+.report-filters {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.report-filters select {
+    margin-right: 10px;
+}
+
+.report-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.summary-card {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    text-align: center;
+}
+
+.summary-number {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0 0;
+}
+
+.chart-container {
+    margin-bottom: 30px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    padding: 20px;
+}
+
+.report-charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    flex: 1;
+    min-width: 45%;
+}
+
+.report-monthly {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+/* Calendar page styles */
+.calendar-filters {
+    margin: 20px 0;
+}
+
+.calendar-filters select {
+    margin-right: 10px;
+}
+
+#booking-calendar {
+    margin-top: 20px;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+.fc-event-title {
+    font-weight: bold;
+}
+
+/* Status colors */
+.status-inquiry { background-color: #ffebcc; border-color: #f90; }
+.status-pending { background-color: #fff9c2; border-color: #e6c700; }
+.status-confirmed { background-color: #d4edda; border-color: #28a745; }
+.status-completed { background-color: #cce5ff; border-color: #007bff; }
+.status-cancelled { background-color: #f8d7da; border-color: #dc3545; }

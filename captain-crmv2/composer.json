@@ -1,0 +1,14 @@
+{
+    "name": "yourusername/captain-crm",
+    "description": "Custom CRM solution for yacht captain business",
+    "type": "wordpress-plugin",
+    "require": {
+        "mongodb/mongodb": "^1.15",
+        "ext-mongodb": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "CaptainCRM\\": "includes/"
+        }
+    }
+}
