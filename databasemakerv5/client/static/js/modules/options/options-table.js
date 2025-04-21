@@ -13,7 +13,9 @@ const OptionsTable = {
   includeGreeks: true,
   strikesPerPage: 10, // Number of strikes to show per page
   currentPage: 1,     // Current page number
-  stockPrice: 0,      // Current stock price for ITM/OTM calculation
+  stockPrice: 0, // Current stock price for ITM/OTM calculation
+  vxxPrice:0,
+
 
   // Filter properties
   filterMin: null,      // Minimum strike filter
@@ -33,6 +35,7 @@ const OptionsTable = {
     // Try to get stock price from controller or estimate it
     if (window.OptionsController && window.OptionsController.stockPrice) {
       this.stockPrice = window.OptionsController.stockPrice;
+      this.vxxPrice = window.OptionsController.vxxPrice;
     } else {
       this.stockPrice = this.fetchRealStockPrice(data);
     }
@@ -533,6 +536,8 @@ const OptionsTable = {
           <span class="badge bg-primary">${this.symbol}</span>
           <span class="ms-2">Expiration: ${this.formatDateForDisplay(expirationDate)}</span>
           ${this.stockPrice > 0 ? `<span class="ms-2">Stock Price: ${this.formatCurrency(this.stockPrice)}</span>` : ''}
+          </span>
+          ${this.VXXprice > 0 ? `<span class="ms-2">VXX Price: ${this.formatCurrency(this.VXXprice)}</span>` : ''}
         </div>
         <div>
           <nav aria-label="Option chain pagination">

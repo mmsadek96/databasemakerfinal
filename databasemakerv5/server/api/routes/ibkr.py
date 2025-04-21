@@ -9,8 +9,14 @@ from server.models.response_models import (
     IBKRTradeResponse,
     IBKRPerformanceResponse
 )
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/ibkr", tags=["ibkr"])
+
+# Response model for TWS connection test
+class TestConnectionResponse(BaseModel):
+    success: bool
+    message: str
 
 @router.get("/account/summary", response_model=IBKRAccountSummaryResponse)
 async def get_account_summary(
@@ -138,3 +144,17 @@ async def get_account_performance(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/test-connection", response_model=TestConnectionResponse)
+async def test_tws_connection(
+    ibkr_service: IBKRService = Depends()
+):
+    """
+    Test connectivity to TWS socket API
+    """
+    try:
+        msg = await ibkr_service.test_connection()
+        return TestConnectionResponse(success=True, message=msg)
+    except Exception as e:
+        # return success=False on failure
+        return TestConnectionResponse(success=False, message=str(e))

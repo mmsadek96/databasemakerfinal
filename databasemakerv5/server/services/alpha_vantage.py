@@ -137,7 +137,8 @@ class AlphaVantageClient:
             'symbol': symbol,
             'interval': interval,
             'outputsize': outputsize,
-            'adjusted': 'true'
+            'adjusted': 'true',
+            'extended_hours': 'true'
         }
 
         data = await self._make_request(params)
@@ -365,3 +366,165 @@ class AlphaVantageClient:
                 result[key] = {}
 
         return result
+
+    # Add this method to the AlphaVantageClient class in server/services/alpha_vantage.py
+
+    async def get_technical_indicator(self,
+                                      symbol: str,
+                                      indicator: str,
+                                      time_period: int = 14,
+                                      series_type: str = "close",
+                                      interval: str = "daily") -> pd.DataFrame:
+        """
+        Get technical indicator data for a symbol
+
+        Args:
+            symbol: Stock symbol
+            indicator: Technical indicator (SMA, EMA, RSI, etc.)
+            time_period: Number of data points used to calculate the indicator
+            series_type: Price series to use (open, high, low, close)
+            interval: Time interval between data points (daily, weekly, monthly)
+
+        Returns:
+            DataFrame with indicator data
+        """
+        # Map interval values to Alpha Vantage format
+        interval_map = {
+            "daily": "daily",
+            "weekly": "weekly",
+            "monthly": "monthly",
+            "1min": "1min",
+            "5min": "5min",
+            "15min": "15min",
+            "30min": "30min",
+            "60min": "60min"
+        }
+
+        av_interval = interval_map.get(interval, "daily")
+
+        # Set up request parameters
+        params = {
+            'function': f"TECHNICAL_INDICATORS::{indicator}",  # Using :: to denote technical indicator
+            'symbol': symbol,
+            'interval': av_interval,
+            'time_period': time_period,
+            'series_type': series_type
+        }
+
+        # Special handling for certain indicators
+        if indicator in ["MACD", "MACDEXT", "STOCH", "STOCHF", "BBANDS"]:
+            # These indicators have different parameters
+            if indicator == "MACD" or indicator == "MACDEXT":
+                params['fastperiod'] = 12
+                params['slowperiod'] = 26
+                params['signalperiod'] = 9
+            elif indicator.startswith("STOCH"):
+                params['fastkperiod'] = 5
+                params['slowkperiod'] = 3
+                params['slowdperiod'] = 3
+            elif indicator == "BBANDS":
+                params['nbdevup'] = 2
+                params['nbdevdn'] = 2
+                params['matype'] = 0  # Simple Moving Average
+
+        # Prepare the actual Alpha Vantage function name
+        if interval in ["1min", "5min", "15min", "30min", "60min"]:
+            # For intraday data, use the intraday version if available
+            if indicator in ["SMA", "EMA", "RSI", "MACD", "BBANDS"]:
+                params['function'] = f"TECHNICAL_INDICATORS::INTRADAY::{indicator}"
+
+        # Actual function mapping for Alpha Vantage
+        function_map = {
+            "TECHNICAL_INDICATORS::SMA": "SMA",
+            "TECHNICAL_INDICATORS::EMA": "EMA",
+            "TECHNICAL_INDICATORS::WMA": "WMA",
+            "TECHNICAL_INDICATORS::DEMA": "DEMA",
+            "TECHNICAL_INDICATORS::TEMA": "TEMA",
+            "TECHNICAL_INDICATORS::TRIMA": "TRIMA",
+            "TECHNICAL_INDICATORS::KAMA": "KAMA",
+            "TECHNICAL_INDICATORS::MAMA": "MAMA",
+            "TECHNICAL_INDICATORS::T3": "T3",
+            "TECHNICAL_INDICATORS::MACD": "MACD",
+            "TECHNICAL_INDICATORS::MACDEXT": "MACDEXT",
+            "TECHNICAL_INDICATORS::STOCH": "STOCH",
+            "TECHNICAL_INDICATORS::STOCHF": "STOCHF",
+            "TECHNICAL_INDICATORS::RSI": "RSI",
+            "TECHNICAL_INDICATORS::STOCHRSI": "STOCHRSI",
+            "TECHNICAL_INDICATORS::WILLR": "WILLR",
+            "TECHNICAL_INDICATORS::ADX": "ADX",
+            "TECHNICAL_INDICATORS::ADXR": "ADXR",
+            "TECHNICAL_INDICATORS::APO": "APO",
+            "TECHNICAL_INDICATORS::PPO": "PPO",
+            "TECHNICAL_INDICATORS::MOM": "MOM",
+            "TECHNICAL_INDICATORS::BOP": "BOP",
+            "TECHNICAL_INDICATORS::CCI": "CCI",
+            "TECHNICAL_INDICATORS::CMO": "CMO",
+            "TECHNICAL_INDICATORS::ROC": "ROC",
+            "TECHNICAL_INDICATORS::ROCR": "ROCR",
+            "TECHNICAL_INDICATORS::AROON": "AROON",
+            "TECHNICAL_INDICATORS::AROONOSC": "AROONOSC",
+            "TECHNICAL_INDICATORS::MFI": "MFI",
+            "TECHNICAL_INDICATORS::TRIX": "TRIX",
+            "TECHNICAL_INDICATORS::ULTOSC": "ULTOSC",
+            "TECHNICAL_INDICATORS::DX": "DX",
+            "TECHNICAL_INDICATORS::MINUS_DI": "MINUS_DI",
+            "TECHNICAL_INDICATORS::PLUS_DI": "PLUS_DI",
+            "TECHNICAL_INDICATORS::MINUS_DM": "MINUS_DM",
+            "TECHNICAL_INDICATORS::PLUS_DM": "PLUS_DM",
+            "TECHNICAL_INDICATORS::BBANDS": "BBANDS",
+            "TECHNICAL_INDICATORS::MIDPOINT": "MIDPOINT",
+            "TECHNICAL_INDICATORS::MIDPRICE": "MIDPRICE",
+            "TECHNICAL_INDICATORS::SAR": "SAR",
+            "TECHNICAL_INDICATORS::TRANGE": "TRANGE",
+            "TECHNICAL_INDICATORS::ATR": "ATR",
+            "TECHNICAL_INDICATORS::NATR": "NATR",
+            "TECHNICAL_INDICATORS::AD": "AD",
+            "TECHNICAL_INDICATORS::ADOSC": "ADOSC",
+            "TECHNICAL_INDICATORS::OBV": "OBV",
+            "TECHNICAL_INDICATORS::HT_TRENDLINE": "HT_TRENDLINE",
+            "TECHNICAL_INDICATORS::HT_SINE": "HT_SINE",
+            "TECHNICAL_INDICATORS::HT_TRENDMODE": "HT_TRENDMODE",
+            "TECHNICAL_INDICATORS::HT_DCPERIOD": "HT_DCPERIOD",
+            "TECHNICAL_INDICATORS::HT_DCPHASE": "HT_DCPHASE",
+            "TECHNICAL_INDICATORS::HT_PHASOR": "HT_PHASOR",
+            # Intraday versions
+            "TECHNICAL_INDICATORS::INTRADAY::SMA": "SMA",
+            "TECHNICAL_INDICATORS::INTRADAY::EMA": "EMA",
+            "TECHNICAL_INDICATORS::INTRADAY::RSI": "RSI",
+            "TECHNICAL_INDICATORS::INTRADAY::MACD": "MACD",
+            "TECHNICAL_INDICATORS::INTRADAY::BBANDS": "BBANDS"
+        }
+
+        # Get the actual Alpha Vantage function name
+        params['function'] = function_map.get(params['function'], indicator)
+
+        try:
+            data = await self._make_request(params)
+
+            # Handle different response formats based on the indicator
+            indicator_data = None
+            for key in data.keys():
+                if key.startswith('Technical Analysis:'):
+                    indicator_data = data[key]
+                    break
+
+            if not indicator_data:
+                logger.warning(f"No indicator data found for {indicator} ({symbol})")
+                return pd.DataFrame()
+
+            # Convert to DataFrame
+            df = pd.DataFrame.from_dict(indicator_data, orient='index')
+
+            # Convert columns to numeric
+            for col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
+            # Set index as datetime
+            df.index = pd.to_datetime(df.index)
+            df.sort_index(inplace=True)
+
+            return df
+
+        except Exception as e:
+            logger.error(f"Error fetching technical indicator ({indicator}) for {symbol}: {e}")
+            return pd.DataFrame()

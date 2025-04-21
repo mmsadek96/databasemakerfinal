@@ -51,3 +51,246 @@
         </div>
     </div>
 </div>
+
+<!-- Add this to the stocks.html template, just after the card with the stock chart -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title">Technical Indicators</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="input-group mb-3">
+                    <select class="form-select" id="technical-indicators-dropdown">
+                        <option value="" selected disabled>Select Indicator</option>
+                        <!-- Indicators will be populated dynamically -->
+                    </select>
+                    <input type="number" class="form-control" id="indicator-time-period" placeholder="Period" value="14" min="1" max="200">
+                    <button class="btn btn-primary" type="button" id="add-indicator-button">
+                        <i class="bi bi-plus"></i> Add Indicator
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-outline-secondary" type="button" id="reset-indicators-button">
+                    <i class="bi bi-trash"></i> Reset Indicators
+                </button>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0">Active Indicators</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="active-indicators-list" class="active-indicators-container">
+                            <!-- Active indicators will be listed here -->
+                            <div class="text-muted">No indicators added yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this at the end of the stocks.html template -->
+<!-- Technical Indicators Guide Modal -->
+<div class="modal fade" id="technicalIndicatorsGuideModal" tabindex="-1" aria-labelledby="technicalIndicatorsGuideModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="technicalIndicatorsGuideModalLabel">Technical Indicators Guide</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="list-group" id="indicators-guide-tabs" role="tablist">
+                <a class="list-group-item list-group-item-action active" id="guide-intro-tab" data-bs-toggle="list" href="#guide-intro" role="tab">Introduction</a>
+                <a class="list-group-item list-group-item-action" id="guide-moving-avg-tab" data-bs-toggle="list" href="#guide-moving-avg" role="tab">Moving Averages</a>
+                <a class="list-group-item list-group-item-action" id="guide-momentum-tab" data-bs-toggle="list" href="#guide-momentum" role="tab">Momentum Indicators</a>
+                <a class="list-group-item list-group-item-action" id="guide-volatility-tab" data-bs-toggle="list" href="#guide-volatility" role="tab">Volatility Indicators</a>
+                <a class="list-group-item list-group-item-action" id="guide-volume-tab" data-bs-toggle="list" href="#guide-volume" role="tab">Volume Indicators</a>
+                <a class="list-group-item list-group-item-action" id="guide-trend-tab" data-bs-toggle="list" href="#guide-trend" role="tab">Trend Indicators</a>
+                <a class="list-group-item list-group-item-action" id="guide-tips-tab" data-bs-toggle="list" href="#guide-tips" role="tab">Trading Tips</a>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="tab-content" id="indicators-guide-content">
+                <div class="tab-pane fade show active" id="guide-intro" role="tabpanel">
+                  <h4>Using Technical Indicators</h4>
+                  <p>Technical indicators are mathematical calculations based on price, volume, or open interest of a security or contract. They help traders identify trends, momentum, volatility, and potential reversals.</p>
+                  <p>To add indicators to your chart:</p>
+                  <ol>
+                    <li>Search and load a stock symbol first</li>
+                    <li>Select an indicator from the dropdown menu</li>
+                    <li>Set the period (number of data points used)</li>
+                    <li>Click "Add Indicator" to display it</li>
+                  </ol>
+                  <p class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Combine multiple indicators for better signal confirmation and always consider the overall market context.
+                  </p>
+                </div>
+                <div class="tab-pane fade" id="guide-moving-avg" role="tabpanel">
+                  <h4>Moving Averages</h4>
+                  <p>Moving averages smooth out price data to help identify trends.</p>
+                  <ul>
+                    <li><strong>SMA (Simple Moving Average)</strong>: Average price over a specified period</li>
+                    <li><strong>EMA (Exponential Moving Average)</strong>: Weighted average giving more importance to recent prices</li>
+                    <li><strong>WMA (Weighted Moving Average)</strong>: Weighted average with linear weights</li>
+                    <li><strong>DEMA (Double Exponential Moving Average)</strong>: Reduced lag compared to regular EMA</li>
+                    <li><strong>TEMA (Triple Exponential Moving Average)</strong>: Further reduced lag compared to DEMA</li>
+                  </ul>
+                  <div class="alert alert-primary">
+                    <strong>How to interpret:</strong>
+                    <ul>
+                      <li>Price above MA: Bullish signal</li>
+                      <li>Price below MA: Bearish signal</li>
+                      <li>Shorter MA crosses above longer MA: Bullish crossover</li>
+                      <li>Shorter MA crosses below longer MA: Bearish crossover</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="guide-momentum" role="tabpanel">
+                  <h4>Momentum Indicators</h4>
+                  <p>Momentum indicators measure the rate of change in price movement.</p>
+                  <ul>
+                    <li><strong>RSI (Relative Strength Index)</strong>: Measures the speed and change of price movements (0-100)</li>
+                    <li><strong>MACD (Moving Average Convergence Divergence)</strong>: Trend-following momentum indicator</li>
+                    <li><strong>Stochastic Oscillator</strong>: Compares a closing price to its price range over a period (0-100)</li>
+                    <li><strong>ROC (Rate of Change)</strong>: Percentage change in price over a specified period</li>
+                    <li><strong>MOM (Momentum)</strong>: Difference between current price and price n periods ago</li>
+                  </ul>
+                  <div class="alert alert-primary">
+                    <strong>How to interpret:</strong>
+                    <ul>
+                      <li><strong>RSI:</strong> Above 70 = overbought, Below 30 = oversold</li>
+                      <li><strong>MACD:</strong> MACD line crossing above signal line = bullish, crossing below = bearish</li>
+                      <li><strong>Stochastic:</strong> Above 80 = overbought, Below 20 = oversold</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="guide-volatility" role="tabpanel">
+                  <h4>Volatility Indicators</h4>
+                  <p>Volatility indicators measure the rate of price movement, regardless of direction.</p>
+                  <ul>
+                    <li><strong>Bollinger Bands (BBANDS)</strong>: Consists of a middle band (SMA) with upper and lower bands based on standard deviation</li>
+                    <li><strong>ATR (Average True Range)</strong>: Measures market volatility</li>
+                    <li><strong>Standard Deviation</strong>: Measures the dispersion of prices from the average</li>
+                  </ul>
+                  <div class="alert alert-primary">
+                    <strong>How to interpret Bollinger Bands:</strong>
+                    <ul>
+                      <li>Price touching upper band: Potentially overbought</li>
+                      <li>Price touching lower band: Potentially oversold</li>
+                      <li>Bands narrowing: Decrease in volatility, potential breakout coming</li>
+                      <li>Bands widening: Increase in volatility</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="guide-volume" role="tabpanel">
+                  <h4>Volume Indicators</h4>
+                  <p>Volume indicators measure the strength of price movement based on trading volume.</p>
+                  <ul>
+                    <li><strong>OBV (On Balance Volume)</strong>: Relates volume to price change</li>
+                    <li><strong>AD (Chaikin A/D Line)</strong>: Accumulation/Distribution line</li>
+                    <li><strong>MFI (Money Flow Index)</strong>: Volume-weighted RSI, measures buying and selling pressure</li>
+                  </ul>
+                  <div class="alert alert-primary">
+                    <strong>How to interpret:</strong>
+                    <ul>
+                      <li>OBV rising with price: Confirms uptrend</li>
+                      <li>OBV falling with price: Confirms downtrend</li>
+                      <li>OBV and price diverging: Potential reversal signal</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="guide-trend" role="tabpanel">
+                  <h4>Trend Indicators</h4>
+                  <p>Trend indicators help identify the direction and strength of trends.</p>
+                  <ul>
+                    <li><strong>ADX (Average Directional Index)</strong>: Measures trend strength (0-100)</li>
+                    <li><strong>Aroon</strong>: Identifies trend changes and strength</li>
+                    <li><strong>Parabolic SAR</strong>: Identifies potential reversals in market price</li>
+                    <li><strong>DI+ and DI-</strong>: Positive and negative directional indicators</li>
+                  </ul>
+                  <div class="alert alert-primary">
+                    <strong>How to interpret ADX:</strong>
+                    <ul>
+                      <li>ADX < 20: Weak or no trend</li>
+                      <li>ADX 20-30: Developing trend</li>
+                      <li>ADX 30-50: Strong trend</li>
+                      <li>ADX > 50: Very strong trend</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="guide-tips" role="tabpanel">
+                  <h4>Advanced Trading Tips</h4>
+                  <p>Here are some tips for using technical indicators effectively:</p>
+                  <ol>
+                    <li><strong>Don't rely on a single indicator</strong> - Combine multiple indicators for confirmation</li>
+                    <li><strong>Context matters</strong> - Consider the overall market and sector trends</li>
+                    <li><strong>Watch for divergences</strong> - When price and indicators move in opposite directions</li>
+                    <li><strong>Notice crossovers</strong> - When indicators cross over each other or certain levels</li>
+                    <li><strong>Customize periods</strong> - Adjust to match your trading timeframe</li>
+                    <li><strong>Use volume confirmation</strong> - Strong price moves should be accompanied by strong volume</li>
+                  </ol>
+                  <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>Remember:</strong> Technical indicators are tools to help make decisions, not guaranteed prediction mechanisms. Always manage risk and consider multiple factors when making trading decisions.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add a help button next to the technical indicators dropdown -->
+<button class="btn btn-outline-info btn-sm ms-2" type="button" data-bs-toggle="modal" data-bs-target="#technicalIndicatorsGuideModal">
+  <i class="bi bi-question-circle"></i> Indicators Guide
+</button>
+
+<!-- Add this CSS to the stocks.html or to your CSS files -->
+<style>
+    .active-indicators-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .active-indicator-item {
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        padding: 6px 10px;
+        border: 1px solid #dee2e6;
+    }
+
+    .active-indicator-item span {
+        margin-right: 8px;
+    }
+
+    .active-indicator-item .btn {
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #indicator-time-period {
+        max-width: 100px;
+    }
+</style>

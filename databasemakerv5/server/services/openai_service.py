@@ -30,7 +30,7 @@ class OpenAIService:
 
             # Call the API
             response = client.chat.completions.create(
-                model="gpt-4",  # Use an appropriate model
+                model="gpt-4o",  # Use an appropriate model
                 messages=[
                     {"role": "system",
                      "content": "You are a financial analyst specializing in earnings call analysis."},

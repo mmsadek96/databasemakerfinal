@@ -2,8 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-
-from server.api.routes import stocks, indicators, options, correlation, transcripts, settings
+from server.api.routes import stocks, indicators, options, correlation, transcripts, settings, ibkr, technical_indicators
 from server.config.settings import get_settings
 
 # Initialize FastAPI app
@@ -29,6 +28,9 @@ app.include_router(options.router)
 app.include_router(correlation.router)
 app.include_router(transcripts.router)
 app.include_router(settings.router)
+app.include_router(ibkr.router)
+app.include_router(technical_indicators.router)  # Add this line
+
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="client/static"), name="static")

@@ -11,6 +11,7 @@ const OptionsSuggestion = {
   // Properties
   symbol: '',
   stockPrice: 0,
+  vxxPrice: 0,
   expirationDate: '',
   calculationResults: [],
   optionsData: null,
@@ -20,13 +21,15 @@ const OptionsSuggestion = {
    * Initialize the suggestions module with data
    * @param {string} symbol - Stock symbol
    * @param {number} stockPrice - Current stock price
+   * @param {number} vxxPrice - Current VXX price
    * @param {string} expirationDate - Current expiration date
    * @param {Array} calculationResults - Results from options calculations
    * @param {Object} optionsData - Options data for the current expiration
    */
-  initialize: function(symbol, stockPrice, expirationDate, calculationResults, optionsData) {
+  initialize: function(symbol, stockPrice, vxxPrice, expirationDate, calculationResults, optionsData) {
     this.symbol = symbol;
     this.stockPrice = stockPrice;
+    this.vxxPrice = vxxPrice;
     this.expirationDate = expirationDate;
     this.calculationResults = calculationResults;
     this.optionsData = optionsData;
@@ -105,6 +108,7 @@ const OptionsSuggestion = {
     const requestData = {
       symbol: this.symbol,
       stockPrice: this.stockPrice,
+      vxxPrice: this.vxxPrice,
       expirationDate: this.expirationDate,
       calculationResults: this.calculationResults,
       optionsData: this.optionsData

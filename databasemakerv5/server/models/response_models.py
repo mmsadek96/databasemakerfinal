@@ -190,3 +190,15 @@ class IBKRPerformanceResponse(BaseModel):
     change_in_value: float
     returns_by_asset_class: Dict[str, float]
     returns_by_sector: Dict[str, float]
+
+# Add this to server/models/response_models.py
+
+class TechnicalIndicatorResponse(BaseModel):
+    """Response model for technical indicator data"""
+    date: str
+    # Using Dict[str, float] because different indicators have different value keys
+    values: Dict[str, float]
+
+class TechnicalIndicatorsListResponse(BaseModel):
+    """Response model for the list of available technical indicators"""
+    indicators: Dict[str, str]

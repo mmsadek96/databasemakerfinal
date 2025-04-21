@@ -3,21 +3,22 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from server.config import get_settings, get_logger
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 
 logger = get_logger(__name__)
 
 
 class MongoDBHelper:
-    """Minimal MongoDB helper for options data only"""
+    """Minimal MongoDB helper for options data and suggestions"""
 
     def __init__(self):
         self.settings = get_settings()
         self.client = None
         self.db = None
         self.options_collection = None
+        self.options_suggestions_collection = None
         self.stocks_collection = None
         self.indicators_collection = None
-
 
     def connect(self):
         """Connect to MongoDB"""
@@ -31,12 +32,18 @@ class MongoDBHelper:
             self.client.admin.command('ping')
             logger.info("Successfully connected to MongoDB!")
 
-            # Set up database and collection
+            # Set up database and collections
             self.db = self.client.financial_intelligence_hub
             self.options_collection = self.db.options_data
+            self.options_suggestions_collection = self.db.options_suggestions
 
-            # Create index for efficient lookups
+            # Create indexes for efficient lookups
             self.options_collection.create_index([("symbol", 1), ("require_greeks", 1)])
+            self.options_suggestions_collection.create_index([
+                ("symbol", 1),
+                ("expiration_date", 1),
+                ("created_at", -1)
+            ])
 
             return True
         except Exception as e:
@@ -93,3 +100,56 @@ class MongoDBHelper:
         except Exception as e:
             logger.error(f"Error retrieving options data: {e}")
             return None
+
+    def store_options_suggestion(self, symbol: str, expiration_date: str, stock_price: float,
+                                 analysis: Dict[str, Any]) -> bool:
+        """Store options analysis suggestion in MongoDB"""
+        try:
+            # Create document
+            doc = {
+                "symbol": symbol,
+                "expiration_date": expiration_date,
+                "stock_price": stock_price,
+                "analysis": analysis,
+                "created_at": datetime.now()
+            }
+
+            # Insert document
+            result = self.options_suggestions_collection.insert_one(doc)
+
+            logger.info(f"Options suggestion stored for {symbol} (expiration: {expiration_date})")
+            return True
+        except Exception as e:
+            logger.error(f"Error storing options suggestion in MongoDB: {e}")
+            return False
+
+    def get_options_suggestions(self, symbol: str, expiration_date: Optional[str] = None, limit: int = 1) -> List[
+        Dict[str, Any]]:
+        """Get options suggestions from MongoDB
+
+        If expiration_date is provided, get suggestions for that specific date.
+        Otherwise, get the most recent suggestions for the symbol.
+        """
+        try:
+            # Build query
+            query = {"symbol": symbol}
+            if expiration_date:
+                query["expiration_date"] = expiration_date
+
+            # Find documents
+            cursor = self.options_suggestions_collection.find(
+                query
+            ).sort("created_at", -1).limit(limit)
+
+            # Convert cursor to list
+            suggestions = list(cursor)
+
+            if suggestions:
+                logger.info(f"Retrieved {len(suggestions)} options suggestions for {symbol}")
+                return suggestions
+
+            logger.info(f"No options suggestions found for {symbol}")
+            return []
+        except Exception as e:
+            logger.error(f"Error retrieving options suggestions: {e}")
+            return []

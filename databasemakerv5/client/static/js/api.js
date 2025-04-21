@@ -136,6 +136,27 @@ const API = {
     },
 
     /**
+     * Get options suggestions from database
+     * @param {string} symbol - Stock symbol
+     * @param {string} expirationDate - Expiration date
+     * @returns {Promise<Object>} - Promise resolving to options suggestions
+     */
+    async getOptionsSuggestions(symbol, expirationDate) {
+        return this.get(`/api/analyze/options/${symbol}`, {
+            expiration_date: expirationDate
+        });
+    },
+
+    /**
+     * Generate options suggestions using AI
+     * @param {Object} data - Analysis request data
+     * @returns {Promise<Object>} - Promise resolving to options suggestions
+     */
+    async generateOptionsSuggestions(data) {
+        return this.post('/api/analyze/options', data);
+    },
+
+    /**
      * Get correlation data for selected stocks and indicators
      * @param {string[]} stocks - Stock symbols
      * @param {string[]} indicators - Indicator names
@@ -298,6 +319,38 @@ const API = {
     async searchIBKRSymbols(query) {
         return this.get('/api/ibkr/search', {query});
     },
+
+    /**
+ * Add these methods to the API object in api.js
+ */
+
+/**
+ * Get technical indicator data for a symbol
+ * @param {string} symbol - Stock symbol
+ * @param {string} indicator - Technical indicator name
+ * @param {Object} params - Optional parameters
+ * @returns {Promise<Object[]>} - Promise resolving to indicator data
+ */
+async getTechnicalIndicator(symbol, indicator, params = {}) {
+    const defaultParams = {
+        time_period: 14,
+        series_type: "close",
+        interval: "daily"
+    };
+
+    // Combine default parameters with provided parameters
+    const queryParams = { ...defaultParams, ...params };
+
+    return this.get(`/api/technical/${symbol}/${indicator}`, queryParams);
+},
+
+/**
+ * Get list of available technical indicators
+ * @returns {Promise<Object>} - Promise resolving to available indicators
+ */
+async getAvailableTechnicalIndicators() {
+    return this.get('/api/technical/available/list');
+},
 
     /**
      * Get IBKR market data

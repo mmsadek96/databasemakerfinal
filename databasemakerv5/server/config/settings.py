@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     IBKR_API_URL: str = Field("https://api.ibkr.com/v1/api", env="IBKR_API_URL")
     IBKR_ACCOUNT_ID: str = Field("", env="IBKR_ACCOUNT_ID")
 
+    # TWS Socket API settings
+    TWS_HOST: str = Field("127.0.0.1", env="TWS_HOST")
+    TWS_PORT: int = Field(7496, env="TWS_PORT")
+    TWS_CLIENT_ID: int = Field(1, env="TWS_CLIENT_ID")
+
     class Config:
         env_file = ".env"
         case_sensitive = True

@@ -1,13 +1,14 @@
 # server/services/openai_options.py
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Depends
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from openai import OpenAI
 from datetime import datetime
 import json
 import traceback
 import os
 from server.config import get_settings, get_logger
+from server.database.mongodb_helper import MongoDBHelper
 
 # Create a router for the options analysis endpoint
 router = APIRouter(prefix="/api/analyze/options", tags=["analysis"])
@@ -33,13 +34,23 @@ class OptionsAnalysisResponse(BaseModel):
     contrarian: str
 
 
+# Dependency to get MongoDB helper instance
+def get_mongodb():
+    """Get MongoDB helper with an initialized connection"""
+    mongo = MongoDBHelper()
+    # Attempt to connect but don't require success
+    mongo.connect()
+    return mongo
+
+
 class OpenAIOptionsService:
     """Service for analyzing options data using OpenAI"""
 
-    def __init__(self):
+    def __init__(self, mongodb=None):
         settings = get_settings()
         self.api_key = settings.OPENAI_API_KEY
         self.client = OpenAI(api_key=self.api_key)
+        self.mongodb = mongodb
 
     async def analyze_options(self,
                               symbol: str,
@@ -152,7 +163,7 @@ class OpenAIOptionsService:
               "contrarian": "A contrarian perspective with supporting quantitative details, expected risk/reward trade-offs, and scenario analysis of potential market divergences"
             }}
 
-            Your analysis should be highly specific, quantitative, and include detailed scenario and exit strategy considerations, reflecting both advanced trading methodologies and a deep awareness of the portfolio’s constraints and market execution risks.
+            Your analysis should be highly specific, quantitative, and include detailed scenario and exit strategy considerations, reflecting both advanced trading methodologies and a deep awareness of the portfolio's constraints and market execution risks.
             """
 
             # Log the full prompt
@@ -220,6 +231,15 @@ class OpenAIOptionsService:
                     else:
                         analysis_data[field] = f"No {field} was provided."
 
+            # Store the analysis in MongoDB if an instance is provided
+            try:
+                if self.mongodb:
+                    self.store_options_suggestion(symbol, stock_price, expiration_date, analysis_data)
+            except Exception as storage_error:
+                # Log the error but continue - storage is non-critical
+                logger.error(f"Error storing options suggestion: {storage_error}")
+                logger.error(traceback.format_exc())
+
             # Log the successful analysis
             logger.info(f"Successfully analyzed options data for {symbol}")
 
@@ -237,6 +257,47 @@ class OpenAIOptionsService:
                 "risks": ["Analysis unavailable due to technical error"],
                 "contrarian": "No contrarian perspective available"
             }
+
+    def store_options_suggestion(self,
+                                 symbol: str,
+                                 stock_price: float,
+                                 expiration_date: str,
+                                 analysis_data: Dict[str, Any]) -> bool:
+        """
+        Store options analysis result in MongoDB
+
+        Args:
+            symbol: Stock symbol
+            stock_price: Current stock price
+            expiration_date: Expiration date
+            analysis_data: The analysis data to store
+
+        Returns:
+            Boolean indicating success
+        """
+        if not self.mongodb:
+            logger.warning("MongoDB connection not available for storing options suggestion")
+            return False
+
+        try:
+            # Store options suggestion
+            success = self.mongodb.store_options_suggestion(
+                symbol=symbol,
+                expiration_date=expiration_date,
+                stock_price=stock_price,
+                analysis=analysis_data
+            )
+
+            if success:
+                logger.info(f"Stored options suggestion for {symbol} (expiration: {expiration_date})")
+            else:
+                logger.warning(f"Failed to store options suggestion for {symbol}")
+
+            return success
+        except Exception as e:
+            logger.error(f"Error storing options suggestion: {e}")
+            logger.error(traceback.format_exc())
+            return False
 
     def create_structured_response(self, symbol: str, text: str) -> Dict[str, Any]:
         """Create a structured response from plain text"""
@@ -386,13 +447,16 @@ class OpenAIOptionsService:
 
 
 # Create a service instance for dependency injection
-def get_openai_options_service():
-    return OpenAIOptionsService()
+def get_openai_options_service(mongodb: MongoDBHelper = Depends(get_mongodb)):
+    return OpenAIOptionsService(mongodb)
 
 
 # Add the endpoint
 @router.post("", response_model=OptionsAnalysisResponse)
-async def analyze_options(request: OptionsAnalysisRequest = Body(...)):
+async def analyze_options(
+        request: OptionsAnalysisRequest = Body(...),
+        service: OpenAIOptionsService = Depends(get_openai_options_service)
+):
     """
     Analyze options data using OpenAI
     """
@@ -400,8 +464,7 @@ async def analyze_options(request: OptionsAnalysisRequest = Body(...)):
         # Log incoming request data
         logger.info(f"Received analysis request for {request.symbol}")
 
-        # Create service and analyze options
-        service = get_openai_options_service()
+        # Analyze options using the service
         analysis = await service.analyze_options(
             symbol=request.symbol,
             stock_price=request.stockPrice,
@@ -416,3 +479,82 @@ async def analyze_options(request: OptionsAnalysisRequest = Body(...)):
         logger.error(err_msg)
         logger.error(traceback.format_exc())  # Log full traceback
         raise HTTPException(status_code=500, detail=err_msg)
+
+
+# Additional endpoint to get stored suggestions
+@router.get("/{symbol}")
+async def get_options_suggestions(
+        symbol: str,
+        expiration_date: Optional[str] = None,
+        mongodb: MongoDBHelper = Depends(get_mongodb)
+):
+    """
+    Get stored options analysis suggestions for a symbol
+
+    Args:
+        symbol: Stock symbol to get suggestions for
+        expiration_date: Optional specific expiration date to filter by
+
+    Returns:
+        List of stored suggestions
+    """
+    try:
+        # Log request
+        logger.info(f"Getting options suggestions for {symbol}")
+
+        # Get suggestions
+        suggestions = mongodb.get_options_suggestions(symbol, expiration_date)
+
+        if not suggestions:
+            logger.info(f"No suggestions found for {symbol}")
+            return {
+                "symbol": symbol,
+                "count": 0,
+                "suggestions": []
+            }
+
+        # Format the response
+        formatted_suggestions = []
+        for suggestion in suggestions:
+            # Convert ObjectId to string for JSON serialization if present
+            if '_id' in suggestion:
+                suggestion_id = str(suggestion['_id'])
+            else:
+                suggestion_id = "unknown"
+
+            # Format created_at datetime to string if present
+            created_at = suggestion.get('created_at')
+            if created_at and isinstance(created_at, datetime):
+                created_at_str = created_at.isoformat()
+            else:
+                created_at_str = None
+
+            formatted_suggestion = {
+                "id": suggestion_id,
+                "symbol": suggestion.get('symbol'),
+                "expiration_date": suggestion.get('expiration_date'),
+                "stock_price": suggestion.get('stock_price'),
+                "created_at": created_at_str,
+                "analysis": suggestion.get('analysis')
+            }
+
+            formatted_suggestions.append(formatted_suggestion)
+
+        # Return formatted suggestions
+        return {
+            "symbol": symbol,
+            "count": len(formatted_suggestions),
+            "suggestions": formatted_suggestions
+        }
+
+    except Exception as e:
+        err_msg = f"Error getting options suggestions: {e}"
+        logger.error(err_msg)
+        logger.error(traceback.format_exc())
+        # Return empty result rather than error for better UX
+        return {
+            "symbol": symbol,
+            "count": 0,
+            "suggestions": [],
+            "error": str(e)
+        }

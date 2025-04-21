@@ -142,3 +142,106 @@
     height: 100px;
     margin: 1.5rem 0;
 }
+
+/* Add this to your charts.css file */
+
+/* Technical Indicators Styling */
+.technical-indicators-section {
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.indicator-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.indicator-badge .indicator-color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.indicator-badge .remove-indicator {
+    margin-left: 5px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.indicator-badge .remove-indicator:hover {
+    opacity: 1;
+}
+
+.indicator-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+}
+
+/* Indicator Parameters Form */
+.indicator-params-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.indicator-param-field {
+    display: flex;
+    align-items: center;
+}
+
+.indicator-param-field label {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.indicator-param-field .form-control {
+    max-width: 80px;
+    padding: 0.25rem 0.5rem;
+    height: auto;
+}
+
+/* Indicator Types */
+.indicator-type-moving-average .indicator-color {
+    background-color: #007bff;
+}
+
+.indicator-type-momentum .indicator-color {
+    background-color: #dc3545;
+}
+
+.indicator-type-volatility .indicator-color {
+    background-color: #fd7e14;
+}
+
+.indicator-type-volume .indicator-color {
+    background-color: #20c997;
+}
+
+.indicator-type-trend .indicator-color {
+    background-color: #6610f2;
+}
+
+.indicator-type-oscillator .indicator-color {
+    background-color: #e83e8c;
+}
+

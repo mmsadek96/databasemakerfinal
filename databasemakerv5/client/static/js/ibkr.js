@@ -42,6 +42,22 @@ const IBKRView = {
         document.getElementById('refresh-ibkr-data').addEventListener('click', () => {
             this.refreshAllData();
         });
+        // Test TWS connection button
+        document.getElementById('test-ibkr-connection').addEventListener('click', () => {
+            App.showNotification('Testing TWS connection...', 'info');
+            API.get('/api/ibkr/test-connection')
+                .then(resp => {
+                    if (resp.success) {
+                        App.showNotification(resp.message, 'success');
+                    } else {
+                        App.showNotification('Connection failed: ' + resp.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error testing TWS connection:', error);
+                    App.showNotification('Error testing connection: ' + error.message, 'error');
+                });
+        });
 
         // Orders filter
         document.getElementById('orders-filter').addEventListener('change', (e) => {
@@ -89,110 +105,87 @@ const IBKRView = {
     },
 
     /**
-     * Initialize charts for account performance
+     * Initialize charts for account performance (if canvases exist)
      */
     initializeCharts: function() {
-        // Initialize performance chart
-        const performanceCtx = document.getElementById('account-performance-chart').getContext('2d');
-        this.performanceChart = new Chart(performanceCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Account Value',
-                    data: [],
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Account Performance'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Value: ${formatCurrency(context.parsed.y)}`;
+        // Initialize performance chart if canvas is present
+        const perfEl = document.getElementById('account-performance-chart');
+        if (perfEl && perfEl.getContext) {
+            const performanceCtx = perfEl.getContext('2d');
+            this.performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Account Value',
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Account Performance' },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Value: ${formatCurrency(ctx.parsed.y)}`
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
                     },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Value ($)'
-                        },
-                        beginAtZero: false
+                    scales: {
+                        x: { title: { display: true, text: 'Date' } },
+                        y: { title: { display: true, text: 'Value ($)' }, beginAtZero: false }
                     }
                 }
-            }
-        });
-
-        // Initialize returns by asset class chart
-        const returnsCtx = document.getElementById('returns-chart').getContext('2d');
-        this.returnsChart = new Chart(returnsCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Return %',
-                    data: [],
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(153, 102, 255, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(153, 102, 255, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Returns by Asset Class'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Return: ${formatPercentage(context.parsed.y)}`;
+            });
+        }
+        // Initialize returns by asset class chart if canvas is present
+        const returnsEl = document.getElementById('returns-chart');
+        if (returnsEl && returnsEl.getContext) {
+            const returnsCtx = returnsEl.getContext('2d');
+            this.returnsChart = new Chart(returnsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Return %',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(153, 102, 255, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Returns by Asset Class' },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Return: ${formatPercentage(ctx.parsed.y)}`
                             }
                         }
-                    }
-                },
-                scales: {
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Return %'
-                        }
-                    }
+                    },
+                    scales: { y: { title: { display: true, text: 'Return %' } } }
                 }
-            }
-        });
+            });
+        }
     },
 
     /**
@@ -497,40 +490,39 @@ const IBKRView = {
             return;
         }
 
-        // Rebuild the performance card content
+        // Rebuild the performance card content with a professional table and charts
         document.getElementById('performance-card').innerHTML = `
             <div class="card-header">
                 <h5 class="card-title">Account Performance (${data.time_period})</h5>
             </div>
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100 dashboard-card">
-                            <div class="card-body text-center">
-                                <h3 class="mb-0">${formatPercentage(data.time_weighted_return * 100)}</h3>
-                                <p class="text-muted">Time-Weighted Return</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100 dashboard-card">
-                            <div class="card-body text-center">
-                                <h3 class="mb-0">${formatCurrency(data.starting_value)}</h3>
-                                <p class="text-muted">Starting Value</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100 dashboard-card">
-                            <div class="card-body text-center">
-                                <h3 class="mb-0">${formatCurrency(data.ending_value)}</h3>
-                                <p class="text-muted">Ending Value</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm table-bordered table-striped performance-table">
+                        <tbody>
+                            <tr>
+                                <th>Starting Value</th>
+                                <td>${formatCurrency(data.starting_value)}</td>
+                            </tr>
+                            <tr>
+                                <th>Ending Value</th>
+                                <td>${formatCurrency(data.ending_value)}</td>
+                            </tr>
+                            <tr>
+                                <th>Change in Value</th>
+                                <td>${formatCurrency(data.change_in_value)}</td>
+                            </tr>
+                            <tr>
+                                <th>Time-Weighted Return</th>
+                                <td>${formatPercentage(data.time_weighted_return * 100)}</td>
+                            </tr>
+                            <tr>
+                                <th>Deposits / Withdrawals</th>
+                                <td>${formatCurrency(data.deposits_withdrawals)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                
-                <div class="row">
+                <div class="row mb-4">
                     <div class="col-md-6 mb-4">
                         <div class="chart-container">
                             <canvas id="account-performance-chart"></canvas>
